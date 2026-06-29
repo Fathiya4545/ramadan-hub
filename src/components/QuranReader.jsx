@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchSurahList, fetchSurah } from '../api';
 import { reciters, ayahAudioUrl, fullSurahAudioUrl } from '../data/reciters';
 
 export default function QuranReader() {
+  const [searchParams] = useSearchParams();
   const [surahs, setSurahs] = useState([]);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -22,6 +24,14 @@ export default function QuranReader() {
       .then(setSurahs)
       .catch(() => setError('Could not load the list of surahs.'));
   }, []);
+
+  useEffect(() => {
+    const surahParam = Number(searchParams.get('surah'));
+    if (surahParam && surahs.some((s) => s.number === surahParam)) {
+      handleSelect(surahParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surahs]);
 
   function startSurahPlayback(detail) {
     if (!audioRef.current) return;
