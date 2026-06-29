@@ -66,6 +66,17 @@ export async function fetchPrayerTimesByCity(city, country) {
   return { timings: json.data.timings, timezone: json.data.meta.timezone };
 }
 
+export async function fetchCityCoords(query) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+  );
+  const json = await res.json();
+  if (!json.length) {
+    throw new Error(`Could not find "${query}"`);
+  }
+  return { lat: parseFloat(json[0].lat), lon: parseFloat(json[0].lon), label: json[0].display_name };
+}
+
 const OVERPASS_MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',

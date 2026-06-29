@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { fetchNearbyMosques } from '../api';
+import { fetchNearbyMosques, fetchCityCoords } from '../api';
 
 const markerIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -51,6 +51,8 @@ export default function MosqueFinder() {
   const [mosques, setMosques] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cityQuery, setCityQuery] = useState('');
+  const [searchingCity, setSearchingCity] = useState(false);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -91,6 +93,17 @@ export default function MosqueFinder() {
     setSearchPoint({ lat, lon });
   }
 
+  function handleCitySearch(e) {
+    e.preventDefault();
+    if (!cityQuery.trim()) return;
+    setSearchingCity(true);
+    setError(null);
+    fetchCityCoords(cityQuery)
+      .then(({ lat, lon }) => setSearchPoint({ lat, lon }))
+      .catch((err) => setError(err.message))
+      .finally(() => setSearchingCity(false));
+  }
+
   const mapCenter = searchPoint
     ? [searchPoint.lat, searchPoint.lon]
     : [21.4225, 39.8262];
@@ -99,8 +112,29 @@ export default function MosqueFinder() {
     <section id="mosques" className="scroll-mt-20 bg-emerald-50 py-16 px-6 md:px-12 text-center">
       <h2 className="text-3xl font-bold text-gray-800">Find Nearby Mosques</h2>
       <p className="text-gray-500 mt-2">
-        Locate mosques near you, or click anywhere on the map to search that area
+        Locate mosques near you, search another city, or click anywhere on the map to search that area
       </p>
+
+      <form
+        onSubmit={handleCitySearch}
+        className="flex flex-col sm:flex-row gap-2 justify-center mt-6 max-w-md mx-auto"
+      >
+        <input
+          type="text"
+          value={cityQuery}
+          onChange={(e) => setCityQuery(e.target.value)}
+          placeholder="Search a city (e.g. Seattle, WA)"
+          autoComplete="off"
+          className="px-4 py-2 rounded-full border border-gray-200 text-sm outline-none flex-1"
+        />
+        <button
+          type="submit"
+          disabled={searchingCity}
+          className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white px-5 py-2 rounded-full text-sm font-medium"
+        >
+          {searchingCity ? '...' : 'Search'}
+        </button>
+      </form>
 
       {error && <p className="text-amber-600 text-sm mt-3">{error}</p>}
 

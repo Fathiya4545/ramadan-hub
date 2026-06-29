@@ -1,13 +1,24 @@
+import { useNavigate } from 'react-router-dom';
 import { scrollToSection } from '../scrollTo';
 
 const features = [
-  { icon: '📖', title: 'Daily Quran', desc: 'Daily verses and translations with audio recitations', id: 'quran' },
+  { icon: '📖', title: 'Daily Quran', desc: 'Daily verses and translations with audio recitations', route: '/quran' },
   { icon: '🕐', title: 'Prayer Times', desc: 'Accurate prayer times based on your location', id: 'prayer-times' },
   { icon: '🕌', title: 'Mosque Finder', desc: 'Find nearby mosques with directions and details', id: 'mosques' },
   { icon: '🤝', title: 'Community', desc: 'Connect with local Muslim community events', id: 'community' },
 ];
 
 export default function Features() {
+  const navigate = useNavigate();
+
+  function handleClick(f) {
+    if (f.route) {
+      navigate(f.route);
+    } else {
+      scrollToSection(f.id);
+    }
+  }
+
   return (
     <section className="py-16 px-6 md:px-12 text-center">
       <h2 className="text-3xl font-bold text-gray-800">Essential Features</h2>
@@ -16,7 +27,7 @@ export default function Features() {
         {features.map((f) => (
           <button
             key={f.title}
-            onClick={() => scrollToSection(f.id)}
+            onClick={() => handleClick(f)}
             className="flex flex-col items-center text-center hover:opacity-80"
           >
             <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-2xl mb-4">
