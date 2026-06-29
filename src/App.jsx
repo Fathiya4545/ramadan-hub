@@ -1,24 +1,27 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Features from './components/Features';
-import PrayerTimes from './components/PrayerTimes';
-import VerseOfDay from './components/VerseOfDay';
-import MosqueFinder from './components/MosqueFinder';
-import CommunityEvents from './components/CommunityEvents';
 import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
+import QuranPage from './pages/QuranPage';
+import NamesPage from './pages/NamesPage';
+import AzkarPage from './pages/AzkarPage';
+import AboutPage from './pages/AboutPage';
 
 function App() {
   return (
-    <div>
-      <Navbar />
-      <Hero />
-      <Features />
-      <PrayerTimes />
-      <VerseOfDay />
-      <MosqueFinder />
-      <CommunityEvents />
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <div>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/quran" element={<QuranPage />} />
+          <Route path="/names" element={<NamesPage />} />
+          <Route path="/azkar" element={<AzkarPage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Routes>
+        <Footer />
+      </div>
+    </BrowserRouter>
   );
 }
 

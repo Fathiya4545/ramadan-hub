@@ -35,7 +35,7 @@ export default function CommunityEvents() {
   }
 
   return (
-    <section className="py-16 px-6 md:px-12 text-center">
+    <section id="community" className="scroll-mt-20 py-16 px-6 md:px-12 text-center">
       <h2 className="text-3xl font-bold text-gray-800">Community Events</h2>
       <p className="text-gray-500 mt-2">Join local Ramadan activities and events</p>
 

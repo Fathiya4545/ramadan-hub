@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchVerseOfDay } from '../api';
+import reciterImg from '../assets/shekh Mashari.JPG';
 
 export default function VerseOfDay() {
   const [verse, setVerse] = useState(null);
@@ -37,7 +38,7 @@ export default function VerseOfDay() {
   }
 
   return (
-    <section className="py-16 px-6 text-center">
+    <section id="verse-of-day" className="scroll-mt-20 py-16 px-6 text-center">
       <h2 className="text-3xl font-bold text-gray-800">Verse of the Day</h2>
       {verse && <p className="text-gray-500 mt-2">From Surah {verse.surahName}</p>}
 
@@ -62,6 +63,17 @@ export default function VerseOfDay() {
             >
               ↗ Share
             </button>
+          </div>
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <img
+              src={reciterImg}
+              alt="Sheikh Mishary Rashid Al-Afasy"
+              className="w-20 h-20 rounded-full object-cover border-2 border-emerald-300 shadow-sm"
+            />
+            <div className="text-left">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Recitation by</p>
+              <p className="font-semibold text-gray-800">Sheikh Mishary Rashid Al-Afasy</p>
+            </div>
           </div>
           <audio
             ref={audioRef}
