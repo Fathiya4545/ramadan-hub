@@ -1,6 +1,6 @@
 {
-  "name": "Ramadan Hub",
-  "short_name": "Ramadan Hub",
+  "name": "Prayer & Quran",
+  "short_name": "Prayer & Quran",
   "description": "Your complete Islamic companion — prayer times, Quran, Qibla, mosques, and more.",
   "start_url": "/",
   "display": "standalone",
