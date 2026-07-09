@@ -78,9 +78,10 @@ export async function fetchCityCoords(query) {
 }
 
 const OVERPASS_MIRRORS = [
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://overpass.openstreetmap.ru/api/interpreter',
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://lz4.overpass-api.de/api/interpreter',
 ];
 
 export async function fetchNearbyMosques(lat, lon, radiusMeters = 10000) {
