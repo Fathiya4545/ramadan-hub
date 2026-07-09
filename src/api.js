@@ -77,50 +77,19 @@ export async function fetchCityCoords(query) {
   return { lat: parseFloat(json[0].lat), lon: parseFloat(json[0].lon), label: json[0].display_name };
 }
 
-const OVERPASS_MIRRORS = [
-  'https://lz4.overpass-api.de/api/interpreter',
-  'https://overpass.openstreetmap.ru/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-];
-
 export async function fetchNearbyMosques(lat, lon, radiusMeters = 10000) {
-  const query = `
-    [out:json][timeout:25];
-    (
-      node["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusMeters},${lat},${lon});
-      way["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusMeters},${lat},${lon});
-    );
-    out center 25;
-  `;
-
-  let lastError;
-  for (const endpoint of OVERPASS_MIRRORS) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: query,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        lastError = new Error(`Overpass request failed (${res.status})`);
-        continue;
-      }
-
-      const json = await res.json();
-      return json.elements.map((el) => ({
-        id: el.id,
-        name: el.tags?.name || 'Mosque',
-        lat: el.lat ?? el.center?.lat,
-        lon: el.lon ?? el.center?.lon,
-      }));
-    } catch (err) {
-      lastError = err;
-    }
+  const res = await fetch(
+    `/api/mosques?lat=${lat}&lon=${lon}&radius=${radiusMeters}`
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Server error ${res.status}`);
   }
-  throw lastError || new Error('All Overpass mirrors failed');
+  const json = await res.json();
+  return json.elements.map((el) => ({
+    id: el.id,
+    name: el.tags?.name || 'Mosque',
+    lat: el.lat ?? el.center?.lat,
+    lon: el.lon ?? el.center?.lon,
+  }));
 }
