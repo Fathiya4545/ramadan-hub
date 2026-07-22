@@ -6,6 +6,25 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+// US daylight saving: starts 2nd Sunday of March, ends 1st Sunday of November
+function nthSunday(year, monthIndex, n) {
+  const first = new Date(year, monthIndex, 1);
+  const offset = (7 - first.getDay()) % 7;
+  return 1 + offset + (n - 1) * 7;
+}
+
+function dstNote(month, year) {
+  if (month === 3) {
+    const day = nthSunday(year, 2, 2);
+    return `☀️ Daylight Saving Time starts on Sunday, March ${day}, ${year}. Please move your clock one hour ahead.`;
+  }
+  if (month === 11) {
+    const day = nthSunday(year, 10, 1);
+    return `🕐 Daylight Saving Time ends on Sunday, November ${day}, ${year}. Please move your clock one hour back.`;
+  }
+  return null;
+}
+
 export default function PrayerCalendar() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -222,6 +241,13 @@ export default function PrayerCalendar() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Daylight saving banner, like the poster */}
+      {!loading && days.length > 0 && dstNote(month, year) && (
+        <div className="max-w-5xl mx-auto mt-4 bg-yellow-300 text-blue-950 font-semibold text-sm md:text-base text-center rounded-lg px-4 py-3 shadow-lg">
+          {dstNote(month, year)}
         </div>
       )}
 
