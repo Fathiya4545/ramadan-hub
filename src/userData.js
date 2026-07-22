@@ -33,6 +33,22 @@ export async function removeStudent(id) {
   return deleteDoc(doc(db, 'students', id));
 }
 
+// ---- Community Events ----
+
+export async function addEvent(event) {
+  // event: { title, date, time, location, description, imageData, videoUrl }
+  return addDoc(collection(db, 'events'), { ...event, createdAt: Date.now() });
+}
+
+export async function fetchEvents() {
+  const snap = await getDocs(query(collection(db, 'events'), orderBy('createdAt', 'desc')));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function removeEvent(id) {
+  return deleteDoc(doc(db, 'events', id));
+}
+
 export function watchFavorites(uid, callback) {
   const ref = doc(db, 'users', uid, 'data', 'favorites');
   return onSnapshot(ref, (snap) => {
