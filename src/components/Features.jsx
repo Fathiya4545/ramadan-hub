@@ -5,7 +5,7 @@ const features = [
   { icon: '📖', title: 'Daily Quran', desc: 'Daily verses and translations with audio recitations', route: '/quran' },
   { icon: '🕐', title: 'Prayer Times', desc: 'Accurate prayer times based on your location', id: 'prayer-times' },
   { icon: '🕌', title: 'Mosque Finder', desc: 'Find nearby mosques with directions and details', id: 'mosques' },
-  { icon: '🤝', title: 'Community', desc: 'Connect with local Muslim community events', id: 'community' },
+  { icon: '🤝', title: 'Community', desc: 'Connect with local Muslim community events', route: '/events' },
 ];
 
 export default function Features() {

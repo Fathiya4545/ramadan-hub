@@ -4,7 +4,6 @@ import PrayerTimes from '../components/PrayerTimes';
 import QiblaFinder from '../components/QiblaFinder';
 import VerseOfDay from '../components/VerseOfDay';
 import MosqueFinder from '../components/MosqueFinder';
-import CommunityEvents from '../components/CommunityEvents';
 
 export default function HomePage() {
   return (
@@ -15,7 +14,6 @@ export default function HomePage() {
       <QiblaFinder />
       <VerseOfDay />
       <MosqueFinder />
-      <CommunityEvents />
     </>
   );
 }

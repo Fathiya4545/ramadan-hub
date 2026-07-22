@@ -10,6 +10,7 @@ import AboutPage from './pages/AboutPage';
 import CalendarPage from './pages/CalendarPage';
 import ParentsPage from './pages/ParentsPage';
 import TodayPage from './pages/TodayPage';
+import EventsPage from './pages/EventsPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/parents" element={<ParentsPage />} />
             <Route path="/today" element={<TodayPage />} />
+            <Route path="/events" element={<EventsPage />} />
           </Routes>
           <Footer />
         </div>
