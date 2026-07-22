@@ -66,6 +66,29 @@ export async function fetchPrayerTimesByCity(city, country) {
   return { timings: json.data.timings, timezone: json.data.meta.timezone };
 }
 
+export async function fetchMonthlyCalendar(lat, lon, month, year) {
+  // method=4 is Umm al-Qura, Makkah/Medina calendar
+  const res = await fetch(
+    `${PRAYER_BASE}/calendar?latitude=${lat}&longitude=${lon}&method=4&month=${month}&year=${year}`
+  );
+  const json = await res.json();
+  if (json.code !== 200) throw new Error('Could not load calendar');
+  return json.data.map((day) => ({
+    gregorianDate: day.date.gregorian.date,
+    gregorianDay: day.date.gregorian.day,
+    weekday: day.date.gregorian.weekday.en,
+    hijriDay: day.date.hijri.day,
+    hijriMonth: day.date.hijri.month.en,
+    hijriYear: day.date.hijri.year,
+    fajr: day.timings.Fajr.split(' ')[0],
+    sunrise: day.timings.Sunrise.split(' ')[0],
+    dhuhr: day.timings.Dhuhr.split(' ')[0],
+    asr: day.timings.Asr.split(' ')[0],
+    maghrib: day.timings.Maghrib.split(' ')[0],
+    isha: day.timings.Isha.split(' ')[0],
+  }));
+}
+
 export async function fetchCityCoords(query) {
   const res = await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`

@@ -6,6 +6,7 @@ import SignInModal from './SignInModal';
 const links = [
   { label: 'Home', type: 'route', to: '/' },
   { label: 'Prayer Times', type: 'anchor', id: 'prayer-times' },
+  { label: 'Calendar', type: 'route', to: '/calendar' },
   { label: 'Qibla', type: 'anchor', id: 'qibla' },
   { label: 'Quran', type: 'route', to: '/quran' },
   { label: '99 Names', type: 'route', to: '/names' },

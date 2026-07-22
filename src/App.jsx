@@ -7,6 +7,7 @@ import QuranPage from './pages/QuranPage';
 import NamesPage from './pages/NamesPage';
 import AzkarPage from './pages/AzkarPage';
 import AboutPage from './pages/AboutPage';
+import CalendarPage from './pages/CalendarPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/names" element={<NamesPage />} />
             <Route path="/azkar" element={<AzkarPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
           </Routes>
           <Footer />
         </div>
