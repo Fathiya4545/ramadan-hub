@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchMonthlyCalendar, fetchCityCoords } from '../api';
+import { fetchMonthlyCalendar, fetchYearlyCalendar, fetchCityCoords } from '../api';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -25,13 +25,87 @@ function dstNote(month, year) {
   return null;
 }
 
+function MonthTable({ days, todayStr, isCurrentMonth }) {
+  return (
+    <div className="overflow-x-auto rounded-xl shadow-2xl border-2 border-amber-500/40 bg-white">
+      <table className="w-full text-sm text-center border-collapse min-w-[680px]">
+        <thead>
+          <tr className="bg-[#14284a] text-white">
+            <th className="py-3 px-2 font-bold">DATE</th>
+            <th className="py-3 px-2 font-bold">DAY</th>
+            <th className="py-3 px-2 font-bold text-amber-300">HIJRI</th>
+            <th className="py-3 px-2 font-bold">FAJR</th>
+            <th className="py-3 px-2 font-bold">SUNRISE</th>
+            <th className="py-3 px-2 font-bold">DUHR</th>
+            <th className="py-3 px-2 font-bold">ASR</th>
+            <th className="py-3 px-2 font-bold bg-emerald-700">MAGHRIB</th>
+            <th className="py-3 px-2 font-bold">ISHA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {days.map((d) => {
+            const isToday = isCurrentMonth && d.gregorianDate === todayStr;
+            const isFriday = d.weekday === 'Friday';
+            return (
+              <tr
+                key={d.gregorianDate}
+                className={
+                  isToday
+                    ? 'bg-yellow-200 font-bold text-gray-900'
+                    : isFriday
+                    ? 'bg-[#1e3a6e] text-white font-semibold'
+                    : 'odd:bg-white even:bg-blue-50/70 text-gray-800'
+                }
+              >
+                <td className="py-2 px-2 font-semibold">{d.gregorianDay}</td>
+                <td className="py-2 px-2">{d.weekday.slice(0, 3)}</td>
+                <td className={`py-2 px-2 ${isFriday ? 'text-amber-300' : 'text-amber-600'} font-semibold`}>
+                  {d.hijriDay}
+                </td>
+                <td className="py-2 px-2">{d.fajr}</td>
+                <td className="py-2 px-2">{d.sunrise}</td>
+                <td className="py-2 px-2">{d.dhuhr}</td>
+                <td className="py-2 px-2">{d.asr}</td>
+                <td
+                  className={`py-2 px-2 font-bold ${
+                    isToday
+                      ? 'text-emerald-800 bg-emerald-100'
+                      : isFriday
+                      ? 'text-emerald-300 bg-emerald-900/40'
+                      : 'text-emerald-700 bg-emerald-50'
+                  }`}
+                >
+                  {d.maghrib}
+                </td>
+                <td className="py-2 px-2">{d.isha}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DstBanner({ month, year }) {
+  const note = dstNote(month, year);
+  if (!note) return null;
+  return (
+    <div className="mt-4 bg-yellow-300 text-blue-950 font-semibold text-sm md:text-base text-center rounded-lg px-4 py-3 shadow-lg">
+      {note}
+    </div>
+  );
+}
+
 export default function PrayerCalendar() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [viewMode, setViewMode] = useState('month'); // 'month' | 'year'
   const [coords, setCoords] = useState(null);
   const [locationLabel, setLocationLabel] = useState('Your Location');
   const [days, setDays] = useState([]);
+  const [yearData, setYearData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cityQuery, setCityQuery] = useState('');
@@ -56,11 +130,18 @@ export default function PrayerCalendar() {
     if (!coords) return;
     setLoading(true);
     setError(null);
-    fetchMonthlyCalendar(coords.lat, coords.lon, month, year)
-      .then(setDays)
-      .catch(() => setError('Could not load the prayer calendar.'))
-      .finally(() => setLoading(false));
-  }, [coords, month, year]);
+    if (viewMode === 'year') {
+      fetchYearlyCalendar(coords.lat, coords.lon, year)
+        .then(setYearData)
+        .catch(() => setError('Could not load the yearly calendar.'))
+        .finally(() => setLoading(false));
+    } else {
+      fetchMonthlyCalendar(coords.lat, coords.lon, month, year)
+        .then(setDays)
+        .catch(() => setError('Could not load the prayer calendar.'))
+        .finally(() => setLoading(false));
+    }
+  }, [coords, month, year, viewMode]);
 
   function handleCitySearch(e) {
     e.preventDefault();
@@ -76,17 +157,18 @@ export default function PrayerCalendar() {
       .finally(() => setSearchingCity(false));
   }
 
+  const activeDays = viewMode === 'month' ? days : yearData?.[now.getMonth() + 1] || [];
   const hijriLabel =
-    days.length > 0
-      ? [...new Set(days.map((d) => d.hijriYear))].join(' / ') + ' AH'
+    activeDays.length > 0
+      ? [...new Set(activeDays.map((d) => d.hijriYear))].join(' / ') + ' AH'
       : '';
   const hijriMonths =
-    days.length > 0
+    viewMode === 'month' && days.length > 0
       ? [...new Set(days.map((d) => d.hijriMonth))].join(' – ')
       : '';
 
   const todayStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-  const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear();
+  const hasData = viewMode === 'month' ? days.length > 0 : !!yearData;
 
   return (
     <section
@@ -113,7 +195,7 @@ export default function PrayerCalendar() {
               fontFamily: 'Georgia, serif',
             }}
           >
-            {MONTHS[month - 1].toUpperCase()}
+            {viewMode === 'year' ? 'FULL YEAR' : MONTHS[month - 1].toUpperCase()}
           </h2>
           <span className="text-4xl" aria-hidden="true">🏮</span>
         </div>
@@ -160,15 +242,37 @@ export default function PrayerCalendar() {
       </form>
 
       <div className="flex flex-wrap gap-2 justify-center mt-4">
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
-        >
-          {MONTHS.map((m, i) => (
-            <option key={m} value={i + 1}>{m}</option>
-          ))}
-        </select>
+        {/* Month / Year toggle */}
+        <div className="flex rounded-full border border-white/20 overflow-hidden">
+          <button
+            onClick={() => setViewMode('month')}
+            className={`px-4 py-2 text-sm font-bold ${
+              viewMode === 'month' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+            }`}
+          >
+            One Month
+          </button>
+          <button
+            onClick={() => setViewMode('year')}
+            className={`px-4 py-2 text-sm font-bold ${
+              viewMode === 'year' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+            }`}
+          >
+            Whole Year
+          </button>
+        </div>
+
+        {viewMode === 'month' && (
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+          >
+            {MONTHS.map((m, i) => (
+              <option key={m} value={i + 1}>{m}</option>
+            ))}
+          </select>
+        )}
         <select
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
@@ -181,78 +285,57 @@ export default function PrayerCalendar() {
       </div>
 
       {error && <p className="text-amber-300 text-sm mt-4 text-center">{error}</p>}
-      {loading && <p className="text-white/60 text-sm mt-6 text-center">Loading calendar...</p>}
+      {loading && (
+        <p className="text-white/60 text-sm mt-6 text-center">
+          {viewMode === 'year' ? 'Loading the whole year — this takes a few seconds...' : 'Loading calendar...'}
+        </p>
+      )}
 
-      {/* Poster-style table */}
-      {!loading && days.length > 0 && (
-        <div className="mt-8 max-w-5xl mx-auto overflow-x-auto rounded-xl shadow-2xl border-2 border-amber-500/40 bg-white">
-          <table className="w-full text-sm text-center border-collapse min-w-[680px]">
-            <thead>
-              <tr className="bg-[#14284a] text-white">
-                <th className="py-3 px-2 font-bold">DATE</th>
-                <th className="py-3 px-2 font-bold">DAY</th>
-                <th className="py-3 px-2 font-bold text-amber-300">HIJRI</th>
-                <th className="py-3 px-2 font-bold">FAJR</th>
-                <th className="py-3 px-2 font-bold">SUNRISE</th>
-                <th className="py-3 px-2 font-bold">DUHR</th>
-                <th className="py-3 px-2 font-bold">ASR</th>
-                <th className="py-3 px-2 font-bold bg-emerald-700">MAGHRIB</th>
-                <th className="py-3 px-2 font-bold">ISHA</th>
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((d) => {
-                const isToday = isCurrentMonth && d.gregorianDate === todayStr;
-                const isFriday = d.weekday === 'Friday';
-                return (
-                  <tr
-                    key={d.gregorianDate}
-                    className={
-                      isToday
-                        ? 'bg-yellow-200 font-bold text-gray-900'
-                        : isFriday
-                        ? 'bg-[#1e3a6e] text-white font-semibold'
-                        : 'odd:bg-white even:bg-blue-50/70 text-gray-800'
-                    }
-                  >
-                    <td className="py-2 px-2 font-semibold">{d.gregorianDay}</td>
-                    <td className="py-2 px-2">{d.weekday.slice(0, 3)}</td>
-                    <td className={`py-2 px-2 ${isFriday ? 'text-amber-300' : 'text-amber-600'} font-semibold`}>
-                      {d.hijriDay}
-                    </td>
-                    <td className="py-2 px-2">{d.fajr}</td>
-                    <td className="py-2 px-2">{d.sunrise}</td>
-                    <td className="py-2 px-2">{d.dhuhr}</td>
-                    <td className="py-2 px-2">{d.asr}</td>
-                    <td
-                      className={`py-2 px-2 font-bold ${
-                        isToday
-                          ? 'text-emerald-800 bg-emerald-100'
-                          : isFriday
-                          ? 'text-emerald-300 bg-emerald-900/40'
-                          : 'text-emerald-700 bg-emerald-50'
-                      }`}
-                    >
-                      {d.maghrib}
-                    </td>
-                    <td className="py-2 px-2">{d.isha}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* One month view */}
+      {!loading && viewMode === 'month' && days.length > 0 && (
+        <div className="mt-8 max-w-5xl mx-auto">
+          <MonthTable
+            days={days}
+            todayStr={todayStr}
+            isCurrentMonth={month === now.getMonth() + 1 && year === now.getFullYear()}
+          />
+          <DstBanner month={month} year={year} />
         </div>
       )}
 
-      {/* Daylight saving banner, like the poster */}
-      {!loading && days.length > 0 && dstNote(month, year) && (
-        <div className="max-w-5xl mx-auto mt-4 bg-yellow-300 text-blue-950 font-semibold text-sm md:text-base text-center rounded-lg px-4 py-3 shadow-lg">
-          {dstNote(month, year)}
+      {/* Whole year view */}
+      {!loading && viewMode === 'year' && yearData && (
+        <div className="mt-8 max-w-5xl mx-auto space-y-12">
+          {MONTHS.map((name, i) => {
+            const m = i + 1;
+            const monthDays = yearData[m] || [];
+            if (monthDays.length === 0) return null;
+            const hijri = [...new Set(monthDays.map((d) => d.hijriMonth))].join(' – ');
+            return (
+              <div key={name}>
+                <div className="text-center mb-4">
+                  <h3
+                    className="text-3xl md:text-4xl font-extrabold tracking-wide"
+                    style={{ color: '#f59e0b', fontFamily: 'Georgia, serif' }}
+                  >
+                    {name.toUpperCase()} {year}
+                  </h3>
+                  {hijri && <p className="text-emerald-200/80 text-sm mt-1">{hijri}</p>}
+                </div>
+                <MonthTable
+                  days={monthDays}
+                  todayStr={todayStr}
+                  isCurrentMonth={m === now.getMonth() + 1 && year === now.getFullYear()}
+                />
+                <DstBanner month={m} year={year} />
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Poster footer */}
-      {!loading && days.length > 0 && (
+      {!loading && hasData && (
         <div className="max-w-5xl mx-auto mt-6 grid md:grid-cols-2 gap-4 text-left">
           <div className="bg-white/5 border border-amber-500/30 rounded-xl p-5">
             <p className="text-amber-300 font-bold mb-2">🤲 Du'a when Breaking the Fast</p>
@@ -275,7 +358,7 @@ export default function PrayerCalendar() {
         </div>
       )}
 
-      {!loading && days.length > 0 && (
+      {!loading && hasData && (
         <p className="text-xs text-white/50 text-center mt-6">
           Times calculated with the Umm al-Qura method (Makkah &amp; Medina) &middot; Fridays in blue &middot; Today in yellow
         </p>
