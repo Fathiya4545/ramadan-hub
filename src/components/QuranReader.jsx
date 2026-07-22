@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchSurahList, fetchSurah } from '../api';
 import { reciters, ayahAudioUrl, fullSurahAudioUrl } from '../data/reciters';
+import { useAuth } from '../AuthContext';
+import { watchFavorites, toggleFavorite, saveReadingProgress, getReadingProgress } from '../userData';
 
 export default function QuranReader() {
   const [searchParams] = useSearchParams();
@@ -16,14 +18,33 @@ export default function QuranReader() {
   const [shuffle, setShuffle] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
   const [reciter, setReciter] = useState(reciters[0]);
+  const [favorites, setFavorites] = useState([]);
+  const [progress, setProgress] = useState(null);
   const audioRef = useRef(null);
   const autoPlayPendingRef = useRef(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchSurahList()
       .then(setSurahs)
       .catch(() => setError('Could not load the list of surahs.'));
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setFavorites([]);
+      return;
+    }
+    const unsubscribe = watchFavorites(user.uid, setFavorites);
+    getReadingProgress(user.uid).then(setProgress);
+    return unsubscribe;
+  }, [user]);
+
+  function handleToggleFavorite(surahNumber, e) {
+    e.stopPropagation();
+    if (!user) return;
+    toggleFavorite(user.uid, surahNumber, favorites);
+  }
 
   useEffect(() => {
     const surahParam = Number(searchParams.get('surah'));
@@ -60,7 +81,10 @@ export default function QuranReader() {
     setSurahDetail(null);
     setLoadingDetail(true);
     fetchSurah(number)
-      .then(setSurahDetail)
+      .then((detail) => {
+        setSurahDetail(detail);
+        if (user) saveReadingProgress(user.uid, number, detail.englishName);
+      })
       .catch(() => setError('Could not load this surah.'))
       .finally(() => setLoadingDetail(false));
   }
@@ -245,6 +269,35 @@ export default function QuranReader() {
 
       {!selected ? (
         <div className="max-w-2xl mx-auto mt-8 text-left">
+          {user && progress && (
+            <button
+              onClick={() => handleSelect(progress.surahNumber)}
+              className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl p-4 mb-4 text-left"
+            >
+              <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide">Continue Reading</p>
+              <p className="font-bold text-gray-800 mt-1">Surah {progress.surahName}</p>
+            </button>
+          )}
+          {user && favorites.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Your Favorites</p>
+              <div className="flex flex-wrap gap-2">
+                {favorites.map((num) => {
+                  const s = surahs.find((x) => x.number === num);
+                  if (!s) return null;
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => handleSelect(num)}
+                      className="bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full px-3 py-1.5 text-xs font-medium text-amber-800"
+                    >
+                      ⭐ {s.englishName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-4">
             {reciter.image ? (
               <img
@@ -327,6 +380,15 @@ export default function QuranReader() {
                     {s.name}
                   </div>
                 </button>
+                {user && (
+                  <button
+                    onClick={(e) => handleToggleFavorite(s.number, e)}
+                    title={favorites.includes(s.number) ? 'Remove from favorites' : 'Add to favorites'}
+                    className="shrink-0 text-lg"
+                  >
+                    {favorites.includes(s.number) ? '⭐' : '☆'}
+                  </button>
+                )}
                 <button
                   onClick={() => playFullSurah(s.number)}
                   title="Play this surah"

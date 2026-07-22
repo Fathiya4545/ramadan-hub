@@ -1,10 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { azkarCategories } from '../data/azkar';
 import { useArabicSpeech } from '../useArabicSpeech';
+import { useAuth } from '../AuthContext';
+import { watchAzkarCounts, incrementAzkarCount, resetAzkarCount } from '../userData';
 
 export default function AzkarSection() {
   const [activeCategory, setActiveCategory] = useState(azkarCategories[0].category);
   const { speak, speakingId, supported } = useArabicSpeech();
+  const { user } = useAuth();
+  const [counts, setCounts] = useState({});
+
+  useEffect(() => {
+    if (!user) {
+      setCounts({});
+      return;
+    }
+    return watchAzkarCounts(user.uid, setCounts);
+  }, [user]);
 
   const current = azkarCategories.find((c) => c.category === activeCategory);
 
@@ -48,6 +60,24 @@ export default function AzkarSection() {
                 )}
               </div>
               <p className="text-gray-600 mt-3 text-sm italic">{item.translation}</p>
+              {user && (
+                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => incrementAzkarCount(user.uid, itemId, counts)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-4 py-1.5 rounded-full"
+                  >
+                    Count: {counts[itemId] || 0}
+                  </button>
+                  {(counts[itemId] || 0) > 0 && (
+                    <button
+                      onClick={() => resetAzkarCount(user.uid, itemId, counts)}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

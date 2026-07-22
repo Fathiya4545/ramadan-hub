@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
+import SignInModal from './SignInModal';
 
 const links = [
   { label: 'Home', type: 'route', to: '/' },
@@ -14,8 +16,17 @@ const links = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logOut } = useAuth();
+
+  function handleSignOut() {
+    setShowUserMenu(false);
+    setMenuOpen(false);
+    logOut();
+  }
 
   function handleNavClick(link) {
     setMenuOpen(false);
@@ -52,10 +63,43 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
-        <div className="flex items-center gap-3">
-          <button className="hidden sm:inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-sm font-medium">
-            Sign In
-          </button>
+        <div className="flex items-center gap-3 relative">
+          {user ? (
+            <div className="hidden sm:block relative">
+              <button
+                onClick={() => setShowUserMenu((o) => !o)}
+                className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 rounded-full pl-1 pr-3 py-1"
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                    {(user.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm text-gray-700 font-medium max-w-[100px] truncate">
+                  {user.displayName || user.email}
+                </span>
+              </button>
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowSignIn(true)}
+              className="hidden sm:inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-sm font-medium"
+            >
+              Sign In
+            </button>
+          )}
           <button
             onClick={() => setMenuOpen((open) => !open)}
             aria-label="Toggle menu"
@@ -81,12 +125,26 @@ export default function Navbar() {
             </li>
           ))}
           <li>
-            <button className="sm:hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-sm font-medium mt-1">
-              Sign In
-            </button>
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className="sm:hidden w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded-full text-sm font-medium mt-1"
+              >
+                Sign Out ({user.displayName || user.email})
+              </button>
+            ) : (
+              <button
+                onClick={() => { setShowSignIn(true); setMenuOpen(false); }}
+                className="sm:hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-full text-sm font-medium mt-1"
+              >
+                Sign In
+              </button>
+            )}
           </li>
         </ul>
       )}
+
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </nav>
   );
 }
