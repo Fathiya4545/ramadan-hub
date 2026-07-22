@@ -22,6 +22,26 @@ export async function fetchVerseOfDay() {
   };
 }
 
+export async function fetchAyahForDate(date) {
+  const dayOfYear = Math.floor(
+    (date - new Date(date.getFullYear(), 0, 0)) / 86400000
+  );
+  const ayahNumber = ((dayOfYear * 37) % 6236) + 1;
+  const [arabicRes, translationRes] = await Promise.all([
+    fetch(`${QURAN_BASE}/ayah/${ayahNumber}/quran-uthmani`),
+    fetch(`${QURAN_BASE}/ayah/${ayahNumber}/en.asad`),
+  ]);
+  const arabic = await arabicRes.json();
+  const translation = await translationRes.json();
+  return {
+    arabicText: arabic.data.text,
+    translationText: translation.data.text,
+    surahName: arabic.data.surah.englishName,
+    ayahInSurah: arabic.data.numberInSurah,
+    audioUrl: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumber}.mp3`,
+  };
+}
+
 export async function fetchSurahList() {
   const res = await fetch(`${QURAN_BASE}/surah`);
   const json = await res.json();

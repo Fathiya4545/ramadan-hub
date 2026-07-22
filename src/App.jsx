@@ -9,6 +9,7 @@ import AzkarPage from './pages/AzkarPage';
 import AboutPage from './pages/AboutPage';
 import CalendarPage from './pages/CalendarPage';
 import ParentsPage from './pages/ParentsPage';
+import TodayPage from './pages/TodayPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/parents" element={<ParentsPage />} />
+            <Route path="/today" element={<TodayPage />} />
           </Routes>
           <Footer />
         </div>
