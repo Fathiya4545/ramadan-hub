@@ -6,6 +6,32 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const US_CITIES = [
+  { name: 'Seattle, WA', lat: 47.6062, lon: -122.3321 },
+  { name: 'Atlanta, GA', lat: 33.749, lon: -84.388 },
+  { name: 'Austin, TX', lat: 30.2672, lon: -97.7431 },
+  { name: 'Boston, MA', lat: 42.3601, lon: -71.0589 },
+  { name: 'Chicago, IL', lat: 41.8781, lon: -87.6298 },
+  { name: 'Columbus, OH', lat: 39.9612, lon: -82.9988 },
+  { name: 'Dallas, TX', lat: 32.7767, lon: -96.797 },
+  { name: 'Denver, CO', lat: 39.7392, lon: -104.9903 },
+  { name: 'Detroit, MI', lat: 42.3314, lon: -83.0458 },
+  { name: 'Houston, TX', lat: 29.7604, lon: -95.3698 },
+  { name: 'Los Angeles, CA', lat: 34.0522, lon: -118.2437 },
+  { name: 'Miami, FL', lat: 25.7617, lon: -80.1918 },
+  { name: 'Minneapolis, MN', lat: 44.9778, lon: -93.265 },
+  { name: 'Nashville, TN', lat: 36.1627, lon: -86.7816 },
+  { name: 'New York, NY', lat: 40.7128, lon: -74.006 },
+  { name: 'Philadelphia, PA', lat: 39.9526, lon: -75.1652 },
+  { name: 'Phoenix, AZ', lat: 33.4484, lon: -112.074 },
+  { name: 'Portland, OR', lat: 45.5152, lon: -122.6784 },
+  { name: 'San Diego, CA', lat: 32.7157, lon: -117.1611 },
+  { name: 'San Francisco, CA', lat: 37.7749, lon: -122.4194 },
+  { name: 'St. Louis, MO', lat: 38.627, lon: -90.1994 },
+  { name: 'Tukwila, WA', lat: 47.474, lon: -122.2610 },
+  { name: 'Washington, DC', lat: 38.9072, lon: -77.0369 },
+];
+
 // US daylight saving: starts 2nd Sunday of March, ends 1st Sunday of November
 function nthSunday(year, monthIndex, n) {
   const first = new Date(year, monthIndex, 1);
@@ -205,10 +231,32 @@ export default function PrayerCalendar() {
         )}
       </div>
 
+      {/* US city picker */}
+      <div className="flex flex-col items-center mt-6">
+        <label className="text-amber-300 text-xs font-semibold tracking-widest uppercase mb-1">
+          Choose your city
+        </label>
+        <select
+          value={US_CITIES.some((c) => c.name === locationLabel) ? locationLabel : ''}
+          onChange={(e) => {
+            const city = US_CITIES.find((c) => c.name === e.target.value);
+            if (!city) return;
+            setCoords({ lat: city.lat, lon: city.lon });
+            setLocationLabel(city.name);
+          }}
+          className="border border-amber-400/60 bg-white/10 text-white rounded-full px-5 py-2.5 text-sm font-semibold outline-none focus:border-amber-300 [&>option]:text-gray-800 min-w-[220px] text-center"
+        >
+          <option value="">Other city (search below)</option>
+          {US_CITIES.map((c) => (
+            <option key={c.name} value={c.name}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Controls */}
       <form
         onSubmit={handleCitySearch}
-        className="flex flex-col sm:flex-row gap-2 justify-center mt-6 max-w-md mx-auto"
+        className="flex flex-col sm:flex-row gap-2 justify-center mt-3 max-w-md mx-auto"
       >
         <input
           type="text"
