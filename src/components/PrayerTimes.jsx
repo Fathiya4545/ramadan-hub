@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchPrayerTimesByCoords, fetchPrayerTimesByCity } from '../api';
+import sunsetMosque from '../assets/sunset.JPG';
 
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const AZAN_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -41,55 +42,11 @@ function getNowInTimezone(timezone) {
   return { minutes: hour * 60 + minute, seconds: second, dateKey };
 }
 
-// Sunset-over-the-Bosphorus backdrop with a mosque silhouette, evoking the Blue Mosque photo
 const MOSQUE_BACKDROP = {
-  background:
-    'linear-gradient(180deg, #f3a6c9 0%, #e08fc0 18%, #b57cc9 32%, #7d6cc4 48%, #4f5aad 64%, #2e3f82 78%, #1b2c5e 100%)',
+  backgroundImage: `linear-gradient(180deg, rgba(15,10,30,0.15) 0%, rgba(15,10,30,0.45) 55%, rgba(10,8,25,0.8) 100%), url(${sunsetMosque})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center 30%',
 };
-
-function MosqueSilhouette() {
-  return (
-    <svg
-      viewBox="0 0 1200 420"
-      preserveAspectRatio="xMidYMax slice"
-      className="absolute inset-x-0 bottom-0 w-full h-[62%] pointer-events-none"
-      aria-hidden="true"
-    >
-      <g fill="#10163a" opacity="0.92">
-        {/* distant skyline */}
-        <rect x="0" y="230" width="1200" height="190" opacity="0.35" />
-        {/* left minaret */}
-        <rect x="120" y="60" width="14" height="300" />
-        <polygon points="127,10 118,60 136,60" />
-        <circle cx="127" cy="8" r="4" />
-        {/* second minaret */}
-        <rect x="230" y="130" width="12" height="230" />
-        <polygon points="236,90 228,130 244,130" />
-        <circle cx="236" cy="88" r="3.5" />
-        {/* main domes cluster */}
-        <path d="M480,360 C480,280 560,240 620,240 C680,240 760,280 760,360 Z" />
-        <path d="M560,300 C560,255 600,230 630,230 C660,230 700,255 700,300 Z" opacity="0.9" />
-        <circle cx="630" cy="222" r="10" />
-        <rect x="626" y="200" width="8" height="26" />
-        {/* small side domes */}
-        <path d="M400,360 C400,320 430,300 450,300 C470,300 500,320 500,360 Z" />
-        <path d="M740,360 C740,320 770,300 790,300 C810,300 840,320 840,360 Z" />
-        {/* right minaret */}
-        <rect x="950" y="120" width="12" height="240" />
-        <polygon points="956,80 948,120 964,120" />
-        <circle cx="956" cy="78" r="3.5" />
-        {/* far right minaret */}
-        <rect x="1050" y="60" width="14" height="300" />
-        <polygon points="1057,10 1048,60 1066,60" />
-        <circle cx="1057" cy="8" r="4" />
-        {/* base building */}
-        <rect x="380" y="330" width="480" height="90" />
-      </g>
-      {/* water reflection strip */}
-      <rect x="0" y="410" width="1200" height="10" fill="#0d1230" opacity="0.6" />
-    </svg>
-  );
-}
 
 export default function PrayerTimes() {
   const [timings, setTimings] = useState(null);
@@ -240,8 +197,7 @@ export default function PrayerTimes() {
   });
 
   return (
-    <section id="prayer-times" className="scroll-mt-20 relative overflow-hidden" style={MOSQUE_BACKDROP}>
-      <MosqueSilhouette />
+    <section id="prayer-times" className="scroll-mt-20 relative overflow-hidden min-h-[640px]" style={MOSQUE_BACKDROP}>
 
       {/* Top countdown bar, like the reference app */}
       <div className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4 bg-black/25 backdrop-blur-sm">
