@@ -54,7 +54,8 @@
       "Bash(curl -sL \"https://api.aladhan.com/v1/timingsByCity?city=Hargeisa&country=Somalia&method=2\")",
       "Bash(curl -sL \"https://api.aladhan.com/v1/timingsByCity?city=Hargaysa&country=Somaliland&method=2\")",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('code:', d.get\\('code'\\)\\); print\\(d.get\\('data',{}\\).get\\('timings', d\\)\\)\")",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(npx vercel *)"
     ]
   }
 }
