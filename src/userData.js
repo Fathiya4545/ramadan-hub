@@ -1,5 +1,37 @@
-import { doc, setDoc, deleteDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import {
+  doc, setDoc, deleteDoc, getDoc, onSnapshot,
+  collection, addDoc, query, where, getDocs, orderBy,
+} from 'firebase/firestore';
 import { db } from './firebase';
+
+// ---- Students / Parents ----
+
+export async function addStudent(student) {
+  // student: { name, grade, className, school, parentEmail, notes }
+  return addDoc(collection(db, 'students'), {
+    ...student,
+    parentEmail: student.parentEmail.trim().toLowerCase(),
+    createdAt: Date.now(),
+  });
+}
+
+export async function fetchMyStudents(parentEmail) {
+  const q = query(
+    collection(db, 'students'),
+    where('parentEmail', '==', parentEmail.trim().toLowerCase())
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function fetchAllStudents() {
+  const snap = await getDocs(query(collection(db, 'students'), orderBy('createdAt', 'desc')));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function removeStudent(id) {
+  return deleteDoc(doc(db, 'students', id));
+}
 
 export function watchFavorites(uid, callback) {
   const ref = doc(db, 'users', uid, 'data', 'favorites');

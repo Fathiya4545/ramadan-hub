@@ -8,6 +8,7 @@ import NamesPage from './pages/NamesPage';
 import AzkarPage from './pages/AzkarPage';
 import AboutPage from './pages/AboutPage';
 import CalendarPage from './pages/CalendarPage';
+import ParentsPage from './pages/ParentsPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/azkar" element={<AzkarPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/parents" element={<ParentsPage />} />
           </Routes>
           <Footer />
         </div>

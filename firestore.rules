@@ -4,5 +4,15 @@ service cloud.firestore {
     match /users/{userId}/data/{document} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    match /students/{studentId} {
+      // Parents may read only records linked to their own email; admin reads all
+      allow read: if request.auth != null &&
+        (resource.data.parentEmail == request.auth.token.email ||
+         request.auth.token.email == 'fathiyayoosef@gmail.com');
+      // Only the admin can add or remove students
+      allow create, update, delete: if request.auth != null &&
+        request.auth.token.email == 'fathiyayoosef@gmail.com';
+    }
   }
 }
