@@ -15,6 +15,7 @@ const links = [
   { label: 'Azkar', type: 'route', to: '/azkar' },
   { label: 'Mosques', type: 'anchor', id: 'mosques' },
   { label: 'Community', type: 'route', to: '/events' },
+  { label: 'Media', type: 'route', to: '/media' },
 ];
 
 export default function Navbar() {

@@ -11,6 +11,7 @@ import CalendarPage from './pages/CalendarPage';
 import ParentsPage from './pages/ParentsPage';
 import TodayPage from './pages/TodayPage';
 import EventsPage from './pages/EventsPage';
+import MediaPage from './pages/MediaPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/parents" element={<ParentsPage />} />
             <Route path="/today" element={<TodayPage />} />
             <Route path="/events" element={<EventsPage />} />
+            <Route path="/media" element={<MediaPage />} />
           </Routes>
           <Footer />
         </div>
