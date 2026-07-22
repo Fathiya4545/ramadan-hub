@@ -102,29 +102,15 @@ export default function PrayerCalendar() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'year'
-  const [coords, setCoords] = useState(null);
-  const [locationLabel, setLocationLabel] = useState('Your Location');
+  // Default: Seattle, WA
+  const [coords, setCoords] = useState({ lat: 47.6062, lon: -122.3321 });
+  const [locationLabel, setLocationLabel] = useState('Seattle, WA');
   const [days, setDays] = useState([]);
   const [yearData, setYearData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cityQuery, setCityQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setError('Location unavailable — search for your city below.');
-      setLoading(false);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      () => {
-        setError('Location denied — search for your city below.');
-        setLoading(false);
-      }
-    );
-  }, []);
 
   useEffect(() => {
     if (!coords) return;
