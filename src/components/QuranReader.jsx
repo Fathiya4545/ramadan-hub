@@ -20,6 +20,9 @@ export default function QuranReader() {
   const [reciter, setReciter] = useState(reciters[0]);
   const [favorites, setFavorites] = useState([]);
   const [progress, setProgress] = useState(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [speed, setSpeed] = useState(1);
   const audioRef = useRef(null);
   const autoPlayPendingRef = useRef(false);
   const { user } = useAuth();
@@ -234,6 +237,50 @@ export default function QuranReader() {
       audioRef.current.pause();
       setIsPaused(true);
     }
+  }
+
+  function skipSeconds(sec) {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = Math.max(
+      0,
+      Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + sec)
+    );
+  }
+
+  function handleSeek(e) {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = Number(e.target.value);
+    setCurrentTime(Number(e.target.value));
+  }
+
+  function cycleSpeed() {
+    const rates = [1, 1.25, 1.5, 0.75];
+    const next = rates[(rates.indexOf(speed) + 1) % rates.length];
+    setSpeed(next);
+    if (audioRef.current) audioRef.current.playbackRate = next;
+  }
+
+  function goToPrevSurah() {
+    const current = nowPlayingSurah?.number;
+    if (!current) return;
+    const idx = surahs.findIndex((s) => s.number === current);
+    const prev = surahs[idx - 1]?.number;
+    if (!prev) return;
+    autoPlayPendingRef.current = true;
+    handleSelect(prev);
+  }
+
+  function goToNextSurahBtn() {
+    const current = nowPlayingSurah?.number;
+    if (!current) return;
+    goToNextSurah(current);
+  }
+
+  function formatTime(t) {
+    if (!t || !isFinite(t)) return '0:00';
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
   }
 
   function handleReciterChange(id) {
@@ -472,38 +519,99 @@ export default function QuranReader() {
       )}
 
       {nowPlayingSurah && (
-        <div className="sticky bottom-4 mt-6 max-w-2xl mx-auto bg-emerald-900 text-white rounded-2xl shadow-lg px-5 py-3 flex items-center gap-3">
-          {reciter.image ? (
-            <img
-              src={reciter.image}
-              alt={reciter.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 shrink-0"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-xs font-semibold shrink-0">
-              {reciter.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
+        <div className="sticky bottom-4 mt-6 max-w-2xl mx-auto bg-emerald-950 text-white rounded-2xl shadow-lg px-5 py-4">
+          {/* Title row */}
+          <div className="flex items-center gap-3">
+            {reciter.image ? (
+              <img
+                src={reciter.image}
+                alt={reciter.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-xs font-semibold shrink-0">
+                {reciter.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
+              </div>
+            )}
+            <div className="flex-1 text-left overflow-hidden">
+              <p className="text-sm font-semibold truncate">
+                {nowPlayingSurah.englishName}
+                {nowPlayingSurah.name ? (
+                  <span dir="rtl" className="ml-2 text-emerald-200">
+                    {nowPlayingSurah.name}
+                  </span>
+                ) : null}
+              </p>
+              <p className="text-xs text-emerald-300 truncate">
+                {reciter.name} &middot; {playingAyah != null ? `Verse ${playingAyah}` : 'Full surah'}
+                {autoplayNext ? ' · playlist' : ''}
+              </p>
             </div>
-          )}
-          <div className="flex-1 text-left overflow-hidden">
-            <p className="text-sm font-semibold truncate">
-              {nowPlayingSurah.englishName}
-              {nowPlayingSurah.name ? (
-                <span dir="rtl" className="ml-2 text-emerald-200">
-                  {nowPlayingSurah.name}
-                </span>
-              ) : null}
-            </p>
-            <p className="text-xs text-emerald-300 truncate">
-              {reciter.name} &middot; {playingAyah != null ? `Verse ${playingAyah}` : 'Full surah'}
-              {autoplayNext ? ' · playlist' : ''}
-            </p>
+            <button
+              onClick={cycleSpeed}
+              className="text-xs font-bold bg-emerald-800 hover:bg-emerald-700 rounded-full px-2.5 py-1 shrink-0"
+              title="Playback speed"
+            >
+              {speed}x
+            </button>
           </div>
-          <button
-            onClick={toggleMiniPlayerPause}
-            className="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center shrink-0"
-          >
-            {isPaused ? '▶' : '⏸'}
-          </button>
+
+          {/* Progress bar */}
+          <div className="flex items-center gap-2 mt-3">
+            <span className="text-[11px] text-emerald-300 w-10 text-right shrink-0">
+              {formatTime(currentTime)}
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={duration || 0}
+              step={0.1}
+              value={Math.min(currentTime, duration || 0)}
+              onChange={handleSeek}
+              className="flex-1 accent-emerald-400 h-1.5"
+            />
+            <span className="text-[11px] text-emerald-300 w-10 shrink-0">
+              {formatTime(duration)}
+            </span>
+          </div>
+
+          {/* Controls row */}
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <button
+              onClick={goToPrevSurah}
+              title="Previous surah"
+              className="w-9 h-9 rounded-full hover:bg-emerald-800 flex items-center justify-center text-lg"
+            >
+              ⏮
+            </button>
+            <button
+              onClick={() => skipSeconds(-15)}
+              title="Back 15 seconds"
+              className="w-10 h-10 rounded-full hover:bg-emerald-800 flex items-center justify-center text-[11px] font-bold border border-emerald-500"
+            >
+              ↺15
+            </button>
+            <button
+              onClick={toggleMiniPlayerPause}
+              className="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 flex items-center justify-center text-xl shrink-0"
+            >
+              {isPaused ? '▶' : '⏸'}
+            </button>
+            <button
+              onClick={() => skipSeconds(15)}
+              title="Forward 15 seconds"
+              className="w-10 h-10 rounded-full hover:bg-emerald-800 flex items-center justify-center text-[11px] font-bold border border-emerald-500"
+            >
+              15↻
+            </button>
+            <button
+              onClick={goToNextSurahBtn}
+              title="Next surah"
+              className="w-9 h-9 rounded-full hover:bg-emerald-800 flex items-center justify-center text-lg"
+            >
+              ⏭
+            </button>
+          </div>
         </div>
       )}
 
@@ -511,7 +619,13 @@ export default function QuranReader() {
         ref={audioRef}
         onEnded={handleAudioEnded}
         onPause={() => setIsPaused(true)}
-        onPlay={() => setIsPaused(false)}
+        onPlay={(e) => {
+          setIsPaused(false);
+          e.target.playbackRate = speed;
+        }}
+        onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.target.duration)}
+        onDurationChange={(e) => setDuration(e.target.duration)}
       />
     </section>
   );
