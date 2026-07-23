@@ -62,7 +62,7 @@ export default function Footer() {
       <footer className="bg-emerald-950 text-emerald-200 py-10 px-6 md:px-12">
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
           <div>
-            <Link to="/" className="font-bold text-white">☽ Ramadan Hub</Link>
+            <Link to="/" className="font-bold text-white">☽ Medina App</Link>
             <p className="text-sm mt-2">Your complete companion for the blessed month of Ramadan.</p>
           </div>
           <div>
@@ -124,7 +124,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <p className="text-center text-xs mt-8">© 2026 Ramadan Hub. All rights reserved.</p>
+        <p className="text-center text-xs mt-8">© 2026 Medina App. All rights reserved.</p>
       </footer>
     </>
   );

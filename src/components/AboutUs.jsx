@@ -3,7 +3,7 @@ export default function AboutUs() {
     <section id="about" className="scroll-mt-20 bg-emerald-50 py-16 px-6 md:px-12 text-center">
       <h2 className="text-3xl font-bold text-gray-800">About Us</h2>
       <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
-        Ramadan Hub is a companion app built to support Muslims through the
+        Medina App is a companion app built to support Muslims through the
         blessed month of Ramadan, bringing prayer times, Quran recitation,
         nearby mosques, and community events together in one place.
       </p>

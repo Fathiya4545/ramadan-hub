@@ -53,7 +53,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between px-6 md:px-12 py-4">
         <Link to="/" className="flex items-center gap-2 font-bold text-emerald-800 text-lg">
           <span>☽</span>
-          <span>Ramadan Hub</span>
+          <span>Medina App</span>
         </Link>
         <ul className="hidden lg:flex gap-8 text-gray-600 text-sm font-medium">
           {links.map((link) => (

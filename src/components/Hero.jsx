@@ -6,7 +6,7 @@ export default function Hero() {
     <section id="home" className="scroll-mt-20 grid md:grid-cols-2 bg-emerald-50">
       <div className="flex flex-col justify-center px-6 md:px-16 py-16 md:py-24">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight">
-          Welcome to <span className="text-emerald-600">Ramadan Hub</span>
+          Welcome to <span className="text-emerald-600">Medina App</span>
         </h1>
         <p className="text-gray-500 mt-4 max-w-md">
           Your complete companion for the blessed month of Ramadan.

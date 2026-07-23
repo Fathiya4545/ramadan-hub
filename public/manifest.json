@@ -1,6 +1,6 @@
 {
-  "name": "Prayer & Quran",
-  "short_name": "Prayer & Quran",
+  "name": "Medina App",
+  "short_name": "Medina App",
   "description": "Your complete Islamic companion — prayer times, Quran, Qibla, mosques, and more.",
   "start_url": "/",
   "display": "standalone",
