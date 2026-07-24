@@ -1,4 +1,10 @@
 import { useRef, useState } from 'react';
+import quranImg from '../assets/Quran2.jpg';
+import recitationsImg from '../assets/Qran place.jpg';
+import misharyImg from '../assets/Sheekh Mashery.JPG';
+import ruqyahImg from '../assets/beutifal masjid.jpg';
+import fatwaImg from '../assets/masjid.jpg';
+import abdulBasitImg from '../assets/Makkah.jpg';
 
 const LIVE_TV = [
   {
@@ -25,11 +31,12 @@ const LIVE_TV = [
 ];
 
 const LIVE_RADIO = [
-  { id: 'mix', name: 'Radio Quran (Main)', url: 'https://backup.qurango.net/radio/mix', color: 'from-emerald-700 to-emerald-950' },
-  { id: 'salma', name: 'Beautiful Recitations', url: 'https://backup.qurango.net/radio/salma', color: 'from-amber-700 to-amber-950' },
-  { id: 'mishary', name: 'Mishary Alafasy Radio', url: 'https://backup.qurango.net/radio/mishary_alafasi', color: 'from-sky-700 to-sky-950' },
-  { id: 'fatwa', name: 'Islamic Fatwas', url: 'https://backup.qurango.net/radio/fatwa', color: 'from-gray-700 to-gray-950' },
-  { id: 'roqiah', name: 'Islamic Ruqyah', url: 'https://backup.qurango.net/radio/roqiah', color: 'from-rose-700 to-rose-950' },
+  { id: 'mix', name: 'Radio Quran (Main)', url: 'https://backup.qurango.net/radio/mix', image: quranImg },
+  { id: 'salma', name: 'Beautiful Recitations', url: 'https://backup.qurango.net/radio/salma', image: recitationsImg },
+  { id: 'mishary', name: 'Mishary Alafasy Radio', url: 'https://backup.qurango.net/radio/mishary_alafasi', image: misharyImg },
+  { id: 'fatwa', name: 'Islamic Fatwas', url: 'https://backup.qurango.net/radio/fatwa', image: fatwaImg },
+  { id: 'roqiah', name: 'Islamic Ruqyah', url: 'https://backup.qurango.net/radio/roqiah', image: ruqyahImg },
+  { id: 'abdulbasit', name: 'Abdul Basit Radio', url: 'https://backup.qurango.net/radio/abdulbasit_abdulsamad', image: abdulBasitImg },
 ];
 
 function TVCard({ channel, playing, onPlay }) {
@@ -71,10 +78,12 @@ function RadioCard({ station, playingId, onToggle }) {
   return (
     <button
       onClick={() => onToggle(station)}
-      className={`bg-gradient-to-br ${station.color} rounded-2xl p-5 text-left text-white h-32 flex flex-col justify-between hover:opacity-90 transition-opacity relative`}
+      className="rounded-2xl p-5 text-left text-white h-32 flex flex-col justify-between hover:opacity-90 transition-opacity relative bg-cover bg-center overflow-hidden"
+      style={{ backgroundImage: `url(${station.image})` }}
     >
-      <span className="text-2xl">{isPlaying ? '⏸' : '▶'}</span>
-      <span className="font-bold leading-tight">{station.name}</span>
+      <div className="absolute inset-0 bg-black/45" />
+      <span className="relative text-2xl">{isPlaying ? '⏸' : '▶'}</span>
+      <span className="relative font-bold leading-tight drop-shadow">{station.name}</span>
       {isPlaying && (
         <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70" />
