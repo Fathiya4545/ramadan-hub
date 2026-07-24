@@ -19,8 +19,8 @@ const LIVE_TV = [
     id: 'sharjah',
     name: 'Sharjah TV',
     desc: 'Official Sharjah TV live channel',
-    embedUrl: 'https://www.youtube.com/embed/live_stream?channel=UCx3YAbhK0eyTI1Y5w6usxAQ&autoplay=1',
-    thumb: null,
+    embedUrl: 'https://www.youtube.com/embed/nNOGatWmxV8?autoplay=1',
+    thumb: 'https://img.youtube.com/vi/nNOGatWmxV8/hqdefault.jpg',
   },
 ];
 
