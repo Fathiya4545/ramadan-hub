@@ -10,6 +10,7 @@ import ajamyImg from '../assets/Ahmed ibn Ali Al-Ajamy .JPG';
 import abdirahmanImg from '../assets/Abdirahman Ali Sufi.JPG';
 import noreenImg from '../assets/Noreen Mohamed Siddiq.JPG';
 import omarHishamImg from '../assets/Omar Al Hisham.JPG';
+import maherImg from '../assets/Maher Al Mueaqly.JPG';
 
 // Surahs with a verified, working recording in the public archive for this reciter.
 // The rest aren't published anywhere yet, so we show "not available" instead of failing silently.
@@ -23,7 +24,7 @@ const OMAR_HISHAM_AVAILABLE_SURAHS = new Set([
 export const reciters = [
   { id: 'ar.alafasy', name: 'Mishary Rashid Alafasy', bitrate: 128, hasFullSurahAudio: true, hasAudio: true, image: alafasyImg },
   { id: 'ar.abdurrahmaansudais', name: 'Abdurrahmaan As-Sudais', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: sudaisImg },
-  { id: 'ar.mahermuaiqly', name: 'Maher Al Muaiqly', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: null },
+  { id: 'ar.mahermuaiqly', name: 'Maher Al Muaiqly', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: maherImg },
   { id: 'ar.husary', name: 'Mahmoud Khalil Al-Husary', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: husaryImg },
   { id: 'ar.abdulsamad', name: 'Abdul Basit Abdul Samad', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: abdulsamadImg },
   { id: 'ar.shaatree', name: 'Abu Bakr Ash-Shaatree', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: shaatreeImg },
