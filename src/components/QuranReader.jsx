@@ -20,6 +20,8 @@ export default function QuranReader() {
   const [reciter, setReciter] = useState(reciters[0]);
   const [favorites, setFavorites] = useState([]);
   const [progress, setProgress] = useState(null);
+  const [showReciterPicker, setShowReciterPicker] = useState(false);
+  const [reciterSearch, setReciterSearch] = useState('');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
@@ -304,6 +306,8 @@ export default function QuranReader() {
     setPlayingAyah(null);
     setPlayingFullSurah(null);
     setError(null);
+    setShowReciterPicker(false);
+    setReciterSearch('');
   }
 
   const nowPlayingSurah =
@@ -385,20 +389,16 @@ export default function QuranReader() {
             </div>
           </div>
 
-          <label className="block mt-4">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">Choose a reciter</span>
-            <select
-              value={reciter.id}
-              onChange={(e) => handleReciterChange(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400"
-            >
-              {reciters.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <button
+            onClick={() => setShowReciterPicker(true)}
+            className="mt-4 w-full border border-gray-200 rounded-full px-4 py-2.5 text-sm text-gray-700 hover:border-emerald-400 flex items-center justify-between"
+          >
+            <span>
+              <span className="text-xs text-gray-400 uppercase tracking-wide mr-2">Reciter</span>
+              {reciter.name}
+            </span>
+            <span className="text-gray-400">Change &rsaquo;</span>
+          </button>
 
           <div className="flex gap-3 mt-4">
             <button
@@ -640,6 +640,76 @@ export default function QuranReader() {
         onLoadedMetadata={(e) => setDuration(e.target.duration)}
         onDurationChange={(e) => setDuration(e.target.duration)}
       />
+
+      {showReciterPicker && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[100] flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setShowReciterPicker(false)}
+        >
+          <div
+            className="bg-gray-950 rounded-2xl w-full max-w-2xl mt-6 mb-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <button
+                onClick={() => setShowReciterPicker(false)}
+                className="text-white/60 hover:text-white text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+              >
+                &lsaquo;
+              </button>
+              <h3 className="text-white font-bold text-lg">All Reciters</h3>
+              <span className="w-8" />
+            </div>
+
+            <div className="px-5 pt-4">
+              <input
+                type="text"
+                autoFocus
+                value={reciterSearch}
+                onChange={(e) => setReciterSearch(e.target.value)}
+                placeholder="🔍  Reciter Name"
+                className="w-full bg-white/10 text-white placeholder-white/40 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 px-5 py-6 max-h-[65vh] overflow-y-auto">
+              {reciters
+                .filter((r) => r.name.toLowerCase().includes(reciterSearch.toLowerCase()))
+                .map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => handleReciterChange(r.id)}
+                    className="flex flex-col items-center gap-2 text-center group"
+                  >
+                    {r.image ? (
+                      <img
+                        src={r.image}
+                        alt={r.name}
+                        className={`w-20 h-20 rounded-full object-cover border-2 ${
+                          r.id === reciter.id ? 'border-emerald-400' : 'border-transparent group-hover:border-white/30'
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`w-20 h-20 rounded-full bg-emerald-900 text-emerald-200 flex items-center justify-center text-lg font-bold border-2 ${
+                          r.id === reciter.id ? 'border-emerald-400' : 'border-transparent group-hover:border-white/30'
+                        }`}
+                      >
+                        {r.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}
+                      </div>
+                    )}
+                    <span className="text-white text-sm font-medium leading-tight">{r.name}</span>
+                  </button>
+                ))}
+              {reciters.filter((r) => r.name.toLowerCase().includes(reciterSearch.toLowerCase())).length === 0 && (
+                <p className="col-span-full text-center text-white/40 text-sm py-8">
+                  No reciters match "{reciterSearch}"
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
