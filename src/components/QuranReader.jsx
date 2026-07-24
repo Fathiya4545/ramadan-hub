@@ -57,10 +57,18 @@ export default function QuranReader() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surahs]);
 
+  function isSurahAvailable(surahNumber) {
+    return !reciter.availableSurahs || reciter.availableSurahs.has(surahNumber);
+  }
+
   function startSurahPlayback(detail) {
     if (!audioRef.current) return;
     if (!reciter.hasAudio) {
       setError(`Recitation audio for ${reciter.name} is not available yet.`);
+      return;
+    }
+    if (!isSurahAvailable(detail.number)) {
+      setError(`${reciter.name} hasn't recorded Surah ${detail.englishName} yet — try another reciter for this surah.`);
       return;
     }
     setError(null);
@@ -140,6 +148,11 @@ export default function QuranReader() {
       audioRef.current.pause();
       setPlayingFullSurah(null);
       setPlayingAyah(null);
+      return;
+    }
+    if (!isSurahAvailable(number)) {
+      const s = surahs.find((x) => x.number === number);
+      setError(`${reciter.name} hasn't recorded Surah ${s?.englishName || number} yet — try another reciter for this surah.`);
       return;
     }
     if (detail) {
