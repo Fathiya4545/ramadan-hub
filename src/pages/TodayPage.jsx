@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchAyahForDate } from '../api';
+import view1 from '../assets/View1.jpg';
+import view2 from '../assets/View2.jpg';
+import view3 from '../assets/View3.jpg';
+import view4 from '../assets/View4.jpg';
+import view5 from '../assets/View5.jpg';
+import view6 from '../assets/View6.jpg';
 
-const BACKGROUNDS = [
-  'linear-gradient(160deg, #3f2d1d 0%, #8a6d3b 55%, #2f2416 100%)',
-  'linear-gradient(160deg, #1a3a2a 0%, #3f7d4e 55%, #12271c 100%)',
-  'linear-gradient(160deg, #1e2a4a 0%, #40548c 55%, #131b30 100%)',
-  'linear-gradient(160deg, #4a1e2e 0%, #8c4055 55%, #2b1119 100%)',
-  'linear-gradient(160deg, #2d1d3f 0%, #6d3b8a 55%, #1c1227 100%)',
-  'linear-gradient(160deg, #3d3416 0%, #94823a 55%, #262009 100%)',
-];
+const BACKGROUNDS = [view1, view2, view3, view4, view5, view6];
 
 const DAILY_DUAS = [
   {
@@ -74,53 +73,58 @@ function DayCard({ date, index, playingUrl, onPlay }) {
       </h3>
 
       <div
-        className="relative rounded-3xl overflow-hidden shadow-2xl px-6 py-12 text-center"
-        style={{ background: bg }}
+        className="relative rounded-3xl overflow-hidden shadow-2xl px-6 py-12 text-center bg-cover bg-center"
+        style={{ backgroundImage: `url(${bg})` }}
       >
-        {/* soft decorative glow */}
+        {/* dark overlay so text stays readable over the photo */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.14), transparent 60%)' }}
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.7) 100%)',
+          }}
           aria-hidden="true"
         />
 
-        {error && <p className="text-white/70 text-sm">Could not load today's verse.</p>}
+        <div className="relative z-10">
+          {error && <p className="text-white/70 text-sm">Could not load today's verse.</p>}
 
-        {verse && (
-          <>
-            <p dir="rtl" className="text-white text-3xl md:text-4xl leading-relaxed drop-shadow-lg">
-              {verse.arabicText}
+          {verse && (
+            <>
+              <p dir="rtl" className="text-white text-3xl md:text-4xl leading-relaxed drop-shadow-lg">
+                {verse.arabicText}
+              </p>
+              <p className="text-white/90 uppercase tracking-wide text-sm md:text-base font-semibold mt-6 max-w-xl mx-auto drop-shadow">
+                {verse.translationText}
+              </p>
+              <p className="text-white/50 text-xs mt-3">
+                Surah {verse.surahName} &middot; Verse {verse.ayahInSurah}
+              </p>
+
+              <button
+                onClick={() => onPlay(verse.audioUrl)}
+                className={`mt-6 w-16 h-16 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur flex items-center justify-center mx-auto transition-transform ${
+                  isPlaying ? 'scale-110 ring-4 ring-rose-500/60' : ''
+                }`}
+                title={isPlaying ? 'Pause recitation' : 'Play recitation'}
+              >
+                <span className={`text-2xl ${isPlaying ? 'text-rose-400' : 'text-rose-500'}`}>
+                  {isPlaying ? '⏸' : '▶'}
+                </span>
+              </button>
+            </>
+          )}
+
+          {!verse && !error && <p className="text-white/50 text-sm py-10">Loading...</p>}
+
+          {/* Dua of the day */}
+          <div className="mt-10 bg-black/30 backdrop-blur rounded-2xl px-5 py-4 max-w-xl mx-auto">
+            <p className="text-amber-300 text-xs font-bold tracking-widest uppercase mb-2">
+              🤲 Dua of the Day
             </p>
-            <p className="text-white/90 uppercase tracking-wide text-sm md:text-base font-semibold mt-6 max-w-xl mx-auto drop-shadow">
-              {verse.translationText}
-            </p>
-            <p className="text-white/50 text-xs mt-3">
-              Surah {verse.surahName} &middot; Verse {verse.ayahInSurah}
-            </p>
-
-            <button
-              onClick={() => onPlay(verse.audioUrl)}
-              className={`mt-6 w-16 h-16 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur flex items-center justify-center mx-auto transition-transform ${
-                isPlaying ? 'scale-110 ring-4 ring-rose-500/60' : ''
-              }`}
-              title={isPlaying ? 'Pause recitation' : 'Play recitation'}
-            >
-              <span className={`text-2xl ${isPlaying ? 'text-rose-400' : 'text-rose-500'}`}>
-                {isPlaying ? '⏸' : '▶'}
-              </span>
-            </button>
-          </>
-        )}
-
-        {!verse && !error && <p className="text-white/50 text-sm py-10">Loading...</p>}
-
-        {/* Dua of the day */}
-        <div className="mt-10 bg-black/30 backdrop-blur rounded-2xl px-5 py-4 max-w-xl mx-auto">
-          <p className="text-amber-300 text-xs font-bold tracking-widest uppercase mb-2">
-            🤲 Dua of the Day
-          </p>
-          <p dir="rtl" className="text-white text-xl leading-relaxed">{dua.arabic}</p>
-          <p className="text-white/70 text-sm italic mt-2">{dua.english}</p>
+            <p dir="rtl" className="text-white text-xl leading-relaxed">{dua.arabic}</p>
+            <p className="text-white/70 text-sm italic mt-2">{dua.english}</p>
+          </div>
         </div>
       </div>
     </div>
