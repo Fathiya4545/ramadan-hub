@@ -93,6 +93,7 @@ function mapCalendarDay(day) {
     weekday: day.date.gregorian.weekday.en,
     hijriDay: day.date.hijri.day,
     hijriMonth: day.date.hijri.month.en,
+    hijriMonthNumber: day.date.hijri.month.number,
     hijriYear: day.date.hijri.year,
     fajr: day.timings.Fajr.split(' ')[0],
     sunrise: day.timings.Sunrise.split(' ')[0],
@@ -118,6 +119,19 @@ export async function fetchYearlyCalendar(lat, lon, year) {
   return months;
 }
 
+export async function fetchHijriMonthCalendar(lat, lon, hijriYear, hijriMonth) {
+  // Note: Aladhan's path order here is /hijriCalendar/{year}/{month}
+  const res = await fetch(
+    `${PRAYER_BASE}/hijriCalendar/${hijriYear}/${hijriMonth}?latitude=${lat}&longitude=${lon}&method=4`
+  );
+  const json = await res.json();
+  if (json.code !== 200) throw new Error('Could not load the Islamic calendar');
+  return json.data.map((day) => ({
+    ...mapCalendarDay(day),
+    holidays: day.date.hijri.holidays || [],
+  }));
+}
+
 export async function fetchMonthlyCalendar(lat, lon, month, year) {
   // method=4 is Umm al-Qura, Makkah/Medina calendar
   const res = await fetch(
@@ -131,6 +145,7 @@ export async function fetchMonthlyCalendar(lat, lon, month, year) {
     weekday: day.date.gregorian.weekday.en,
     hijriDay: day.date.hijri.day,
     hijriMonth: day.date.hijri.month.en,
+    hijriMonthNumber: day.date.hijri.month.number,
     hijriYear: day.date.hijri.year,
     fajr: day.timings.Fajr.split(' ')[0],
     sunrise: day.timings.Sunrise.split(' ')[0],

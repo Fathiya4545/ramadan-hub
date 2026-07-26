@@ -1,9 +1,15 @@
-import { useEffect, useState } from 'react';
-import { fetchMonthlyCalendar, fetchYearlyCalendar, fetchCityCoords } from '../api';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { fetchMonthlyCalendar, fetchYearlyCalendar, fetchHijriMonthCalendar, fetchCityCoords } from '../api';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const HIJRI_MONTHS = [
+  'Muharram', "Safar", "Rabi' al-awwal", "Rabi' al-thani",
+  'Jumada al-awwal', 'Jumada al-thani', 'Rajab', "Sha'ban",
+  'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah',
 ];
 
 const US_CITIES = [
@@ -51,15 +57,20 @@ function dstNote(month, year) {
   return null;
 }
 
-function MonthTable({ days, todayStr, isCurrentMonth }) {
+function MonthTable({ days, todayStr, isCurrentMonth, mode = 'gregorian' }) {
+  const isIslamic = mode === 'islamic';
   return (
     <div className="overflow-x-auto rounded-xl shadow-2xl border-2 border-amber-500/40 bg-white">
       <table className="w-full text-sm text-center border-collapse min-w-[680px]">
         <thead>
           <tr className="bg-[#14284a] text-white">
-            <th className="py-3 px-2 font-bold">DATE</th>
+            <th className={`py-3 px-2 font-bold ${isIslamic ? 'text-amber-300' : ''}`}>
+              {isIslamic ? 'HIJRI DATE' : 'DATE'}
+            </th>
             <th className="py-3 px-2 font-bold">DAY</th>
-            <th className="py-3 px-2 font-bold text-amber-300">HIJRI</th>
+            <th className={`py-3 px-2 font-bold ${isIslamic ? '' : 'text-amber-300'}`}>
+              {isIslamic ? 'GREGORIAN' : 'HIJRI'}
+            </th>
             <th className="py-3 px-2 font-bold">FAJR</th>
             <th className="py-3 px-2 font-bold">SUNRISE</th>
             <th className="py-3 px-2 font-bold">DUHR</th>
@@ -72,39 +83,50 @@ function MonthTable({ days, todayStr, isCurrentMonth }) {
           {days.map((d) => {
             const isToday = isCurrentMonth && d.gregorianDate === todayStr;
             const isFriday = d.weekday === 'Friday';
+            const hasHolidays = isIslamic && d.holidays && d.holidays.length > 0;
             return (
-              <tr
-                key={d.gregorianDate}
-                className={
-                  isToday
-                    ? 'bg-yellow-200 font-bold text-gray-900'
-                    : isFriday
-                    ? 'bg-[#1e3a6e] text-white font-semibold'
-                    : 'odd:bg-white even:bg-blue-50/70 text-gray-800'
-                }
-              >
-                <td className="py-2 px-2 font-semibold">{d.gregorianDay}</td>
-                <td className="py-2 px-2">{d.weekday.slice(0, 3)}</td>
-                <td className={`py-2 px-2 ${isFriday ? 'text-amber-300' : 'text-amber-600'} font-semibold`}>
-                  {d.hijriDay}
-                </td>
-                <td className="py-2 px-2">{d.fajr}</td>
-                <td className="py-2 px-2">{d.sunrise}</td>
-                <td className="py-2 px-2">{d.dhuhr}</td>
-                <td className="py-2 px-2">{d.asr}</td>
-                <td
-                  className={`py-2 px-2 font-bold ${
+              <Fragment key={d.gregorianDate}>
+                <tr
+                  className={
                     isToday
-                      ? 'text-emerald-800 bg-emerald-100'
+                      ? 'bg-yellow-200 font-bold text-gray-900'
                       : isFriday
-                      ? 'text-emerald-300 bg-emerald-900/40'
-                      : 'text-emerald-700 bg-emerald-50'
-                  }`}
+                      ? 'bg-[#1e3a6e] text-white font-semibold'
+                      : 'odd:bg-white even:bg-blue-50/70 text-gray-800'
+                  }
                 >
-                  {d.maghrib}
-                </td>
-                <td className="py-2 px-2">{d.isha}</td>
-              </tr>
+                  <td className="py-2 px-2 font-semibold">
+                    {isIslamic ? d.hijriDay : d.gregorianDay}
+                  </td>
+                  <td className="py-2 px-2">{d.weekday.slice(0, 3)}</td>
+                  <td className={`py-2 px-2 ${isFriday ? 'text-amber-300' : 'text-amber-600'} font-semibold`}>
+                    {isIslamic ? d.gregorianDay : d.hijriDay}
+                  </td>
+                  <td className="py-2 px-2">{d.fajr}</td>
+                  <td className="py-2 px-2">{d.sunrise}</td>
+                  <td className="py-2 px-2">{d.dhuhr}</td>
+                  <td className="py-2 px-2">{d.asr}</td>
+                  <td
+                    className={`py-2 px-2 font-bold ${
+                      isToday
+                        ? 'text-emerald-800 bg-emerald-100'
+                        : isFriday
+                        ? 'text-emerald-300 bg-emerald-900/40'
+                        : 'text-emerald-700 bg-emerald-50'
+                    }`}
+                  >
+                    {d.maghrib}
+                  </td>
+                  <td className="py-2 px-2">{d.isha}</td>
+                </tr>
+                {hasHolidays && (
+                  <tr>
+                    <td colSpan={9} className="bg-amber-50 text-amber-800 text-xs font-semibold py-1.5 px-2">
+                      ✨ {d.holidays.join(', ')}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             );
           })}
         </tbody>
@@ -125,9 +147,10 @@ function DstBanner({ month, year }) {
 
 export default function PrayerCalendar() {
   const now = new Date();
+  const [calendarType, setCalendarType] = useState('gregorian'); // 'gregorian' | 'islamic'
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [viewMode, setViewMode] = useState('month'); // 'month' | 'year'
+  const [viewMode, setViewMode] = useState('month'); // 'month' | 'year' (gregorian only)
   // Default: Seattle, WA
   const [coords, setCoords] = useState({ lat: 47.6062, lon: -122.3321 });
   const [locationLabel, setLocationLabel] = useState('Seattle, WA');
@@ -138,8 +161,15 @@ export default function PrayerCalendar() {
   const [cityQuery, setCityQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
 
+  const [hijriMonth, setHijriMonth] = useState(null);
+  const [hijriYear, setHijriYear] = useState(null);
+  const [hijriDays, setHijriDays] = useState([]);
+  const [hijriLoading, setHijriLoading] = useState(false);
+  const [hijriError, setHijriError] = useState(null);
+  const hasSetHijriDefault = useRef(false);
+
   useEffect(() => {
-    if (!coords) return;
+    if (!coords || calendarType !== 'gregorian') return;
     setLoading(true);
     setError(null);
     if (viewMode === 'year') {
@@ -149,11 +179,34 @@ export default function PrayerCalendar() {
         .finally(() => setLoading(false));
     } else {
       fetchMonthlyCalendar(coords.lat, coords.lon, month, year)
-        .then(setDays)
+        .then((data) => {
+          setDays(data);
+          // Use today's Hijri month/year as the default for Islamic calendar mode
+          if (!hasSetHijriDefault.current) {
+            const todayEntry = data.find(
+              (d) => d.gregorianDate === `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`
+            );
+            if (todayEntry) {
+              setHijriMonth(todayEntry.hijriMonthNumber);
+              setHijriYear(Number(todayEntry.hijriYear));
+              hasSetHijriDefault.current = true;
+            }
+          }
+        })
         .catch(() => setError('Could not load the prayer calendar.'))
         .finally(() => setLoading(false));
     }
-  }, [coords, month, year, viewMode]);
+  }, [coords, month, year, viewMode, calendarType]);
+
+  useEffect(() => {
+    if (!coords || calendarType !== 'islamic' || !hijriMonth || !hijriYear) return;
+    setHijriLoading(true);
+    setHijriError(null);
+    fetchHijriMonthCalendar(coords.lat, coords.lon, hijriYear, hijriMonth)
+      .then(setHijriDays)
+      .catch(() => setHijriError('Could not load the Islamic calendar.'))
+      .finally(() => setHijriLoading(false));
+  }, [coords, hijriMonth, hijriYear, calendarType]);
 
   function handleCitySearch(e) {
     e.preventDefault();
@@ -180,7 +233,30 @@ export default function PrayerCalendar() {
       : '';
 
   const todayStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-  const hasData = viewMode === 'month' ? days.length > 0 : !!yearData;
+  const hasData =
+    calendarType === 'islamic'
+      ? hijriDays.length > 0
+      : viewMode === 'month'
+      ? days.length > 0
+      : !!yearData;
+
+  function goToPrevHijriMonth() {
+    if (hijriMonth === 1) {
+      setHijriMonth(12);
+      setHijriYear((y) => y - 1);
+    } else {
+      setHijriMonth((m) => m - 1);
+    }
+  }
+
+  function goToNextHijriMonth() {
+    if (hijriMonth === 12) {
+      setHijriMonth(1);
+      setHijriYear((y) => y + 1);
+    } else {
+      setHijriMonth((m) => m + 1);
+    }
+  }
 
   return (
     <section
@@ -207,12 +283,16 @@ export default function PrayerCalendar() {
               fontFamily: 'Georgia, serif',
             }}
           >
-            {viewMode === 'year' ? 'FULL YEAR' : MONTHS[month - 1].toUpperCase()}
+            {calendarType === 'islamic'
+              ? (hijriMonth ? HIJRI_MONTHS[hijriMonth - 1].toUpperCase() : '...')
+              : viewMode === 'year' ? 'FULL YEAR' : MONTHS[month - 1].toUpperCase()}
           </h2>
           <span className="text-4xl" aria-hidden="true">🏮</span>
         </div>
         <div className="flex items-center justify-center gap-4 mt-2">
-          <span className="text-white text-4xl md:text-5xl font-extrabold">{year}</span>
+          <span className="text-white text-4xl md:text-5xl font-extrabold">
+            {calendarType === 'islamic' ? (hijriYear ? `${hijriYear} AH` : '...') : year}
+          </span>
           <span className="text-amber-300 text-2xl" aria-hidden="true">✺</span>
           <div className="text-left">
             <p className="text-white font-bold text-xl md:text-2xl leading-tight">PRAYER TIMES</p>
@@ -224,11 +304,35 @@ export default function PrayerCalendar() {
         </div>
         <p className="text-white font-bold text-lg md:text-xl mt-3 tracking-wide uppercase">
           {locationLabel}
-          {hijriLabel && <span className="text-amber-300 font-semibold"> | {hijriLabel}</span>}
+          {calendarType === 'gregorian' && hijriLabel && (
+            <span className="text-amber-300 font-semibold"> | {hijriLabel}</span>
+          )}
         </p>
-        {hijriMonths && (
+        {calendarType === 'gregorian' && hijriMonths && (
           <p className="text-emerald-200/80 text-sm mt-1">{hijriMonths}</p>
         )}
+      </div>
+
+      {/* Gregorian / Islamic calendar toggle */}
+      <div className="flex justify-center mt-5">
+        <div className="flex rounded-full border border-amber-400/40 overflow-hidden">
+          <button
+            onClick={() => setCalendarType('gregorian')}
+            className={`px-5 py-2 text-sm font-bold ${
+              calendarType === 'gregorian' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+            }`}
+          >
+            📅 Gregorian
+          </button>
+          <button
+            onClick={() => setCalendarType('islamic')}
+            className={`px-5 py-2 text-sm font-bold ${
+              calendarType === 'islamic' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+            }`}
+          >
+            🌙 Islamic
+          </button>
+        </div>
       </div>
 
       {/* US city picker */}
@@ -275,58 +379,103 @@ export default function PrayerCalendar() {
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2 justify-center mt-4">
-        {/* Month / Year toggle */}
-        <div className="flex rounded-full border border-white/20 overflow-hidden">
-          <button
-            onClick={() => setViewMode('month')}
-            className={`px-4 py-2 text-sm font-bold ${
-              viewMode === 'month' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
-            }`}
-          >
-            One Month
-          </button>
-          <button
-            onClick={() => setViewMode('year')}
-            className={`px-4 py-2 text-sm font-bold ${
-              viewMode === 'year' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
-            }`}
-          >
-            Whole Year
-          </button>
-        </div>
+      {calendarType === 'gregorian' && (
+        <div className="flex flex-wrap gap-2 justify-center mt-4">
+          {/* Month / Year toggle */}
+          <div className="flex rounded-full border border-white/20 overflow-hidden">
+            <button
+              onClick={() => setViewMode('month')}
+              className={`px-4 py-2 text-sm font-bold ${
+                viewMode === 'month' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+              }`}
+            >
+              One Month
+            </button>
+            <button
+              onClick={() => setViewMode('year')}
+              className={`px-4 py-2 text-sm font-bold ${
+                viewMode === 'year' ? 'bg-amber-500 text-blue-950' : 'bg-white/10 text-white'
+              }`}
+            >
+              Whole Year
+            </button>
+          </div>
 
-        {viewMode === 'month' && (
+          {viewMode === 'month' && (
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+            >
+              {MONTHS.map((m, i) => (
+                <option key={m} value={i + 1}>{m}</option>
+              ))}
+            </select>
+          )}
           <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
             className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
           >
-            {MONTHS.map((m, i) => (
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {calendarType === 'islamic' && hijriMonth && hijriYear && (
+        <div className="flex flex-wrap items-center gap-2 justify-center mt-4">
+          <button
+            onClick={goToPrevHijriMonth}
+            className="w-9 h-9 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
+          >
+            &lsaquo;
+          </button>
+          <select
+            value={hijriMonth}
+            onChange={(e) => setHijriMonth(Number(e.target.value))}
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+          >
+            {HIJRI_MONTHS.map((m, i) => (
               <option key={m} value={i + 1}>{m}</option>
             ))}
           </select>
-        )}
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
-        >
-          {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-      </div>
+          <select
+            value={hijriYear}
+            onChange={(e) => setHijriYear(Number(e.target.value))}
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+          >
+            {[hijriYear - 1, hijriYear, hijriYear + 1].map((y) => (
+              <option key={y} value={y}>{y} AH</option>
+            ))}
+          </select>
+          <button
+            onClick={goToNextHijriMonth}
+            className="w-9 h-9 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
+          >
+            &rsaquo;
+          </button>
+        </div>
+      )}
 
-      {error && <p className="text-amber-300 text-sm mt-4 text-center">{error}</p>}
-      {loading && (
+      {calendarType === 'gregorian' && error && (
+        <p className="text-amber-300 text-sm mt-4 text-center">{error}</p>
+      )}
+      {calendarType === 'islamic' && hijriError && (
+        <p className="text-amber-300 text-sm mt-4 text-center">{hijriError}</p>
+      )}
+      {calendarType === 'gregorian' && loading && (
         <p className="text-white/60 text-sm mt-6 text-center">
           {viewMode === 'year' ? 'Loading the whole year — this takes a few seconds...' : 'Loading calendar...'}
         </p>
       )}
+      {calendarType === 'islamic' && hijriLoading && (
+        <p className="text-white/60 text-sm mt-6 text-center">Loading Islamic calendar...</p>
+      )}
 
-      {/* One month view */}
-      {!loading && viewMode === 'month' && days.length > 0 && (
+      {/* One month view (Gregorian) */}
+      {calendarType === 'gregorian' && !loading && viewMode === 'month' && days.length > 0 && (
         <div className="mt-8 max-w-5xl mx-auto">
           <MonthTable
             days={days}
@@ -337,8 +486,8 @@ export default function PrayerCalendar() {
         </div>
       )}
 
-      {/* Whole year view */}
-      {!loading && viewMode === 'year' && yearData && (
+      {/* Whole year view (Gregorian) */}
+      {calendarType === 'gregorian' && !loading && viewMode === 'year' && yearData && (
         <div className="mt-8 max-w-5xl mx-auto space-y-12">
           {MONTHS.map((name, i) => {
             const m = i + 1;
@@ -365,6 +514,18 @@ export default function PrayerCalendar() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Islamic (Hijri) month view */}
+      {calendarType === 'islamic' && !hijriLoading && hijriDays.length > 0 && (
+        <div className="mt-8 max-w-5xl mx-auto">
+          <MonthTable
+            days={hijriDays}
+            todayStr={todayStr}
+            isCurrentMonth
+            mode="islamic"
+          />
         </div>
       )}
 
