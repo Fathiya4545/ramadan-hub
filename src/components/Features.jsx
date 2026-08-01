@@ -21,20 +21,20 @@ export default function Features() {
 
   return (
     <section className="py-16 px-6 md:px-12 text-center">
-      <h2 className="text-3xl font-bold text-gray-800">Essential Features</h2>
-      <p className="text-gray-500 mt-2">Everything you need during the blessed month</p>
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Essential Features</h2>
+      <p className="text-gray-500 dark:text-gray-400 mt-2">Everything you need during the blessed month</p>
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mt-12 max-w-5xl mx-auto">
         {features.map((f) => (
           <button
             key={f.title}
             onClick={() => handleClick(f)}
-            className="flex flex-col items-center text-center hover:opacity-80"
+            className="group flex flex-col items-center text-center rounded-2xl border border-transparent hover:border-emerald-100 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-4 py-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-600/10 dark:hover:shadow-emerald-400/10 transition duration-200"
           >
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-2xl mb-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-gray-700 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform duration-200">
               {f.icon}
             </div>
-            <h3 className="font-semibold text-gray-800">{f.title}</h3>
-            <p className="text-sm text-gray-500 mt-1">{f.desc}</p>
+            <h3 className="font-semibold text-gray-800 dark:text-gray-100">{f.title}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{f.desc}</p>
           </button>
         ))}
       </div>

@@ -60,7 +60,7 @@ function dstNote(month, year) {
 function MonthTable({ days, todayStr, isCurrentMonth, mode = 'gregorian' }) {
   const isIslamic = mode === 'islamic';
   return (
-    <div className="overflow-x-auto rounded-xl shadow-2xl border-2 border-amber-500/40 bg-white">
+    <div className="overflow-x-auto rounded-xl shadow-2xl border-2 border-amber-500/40 bg-white dark:bg-gray-800">
       <table className="w-full text-sm text-center border-collapse min-w-[680px]">
         <thead>
           <tr className="bg-[#14284a] text-white">
@@ -92,7 +92,7 @@ function MonthTable({ days, todayStr, isCurrentMonth, mode = 'gregorian' }) {
                       ? 'bg-yellow-200 font-bold text-gray-900'
                       : isFriday
                       ? 'bg-[#1e3a6e] text-white font-semibold'
-                      : 'odd:bg-white even:bg-blue-50/70 text-gray-800'
+                      : 'odd:bg-white even:bg-blue-50/70 dark:odd:bg-gray-800 dark:even:bg-gray-700/60 text-gray-800 dark:text-gray-100'
                   }
                 >
                   <td className="py-2 px-2 font-semibold">
@@ -109,10 +109,10 @@ function MonthTable({ days, todayStr, isCurrentMonth, mode = 'gregorian' }) {
                   <td
                     className={`py-2 px-2 font-bold ${
                       isToday
-                        ? 'text-emerald-800 bg-emerald-100'
+                        ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-gray-700'
                         : isFriday
                         ? 'text-emerald-300 bg-emerald-900/40'
-                        : 'text-emerald-700 bg-emerald-50'
+                        : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-gray-900'
                     }`}
                   >
                     {d.maghrib}
@@ -348,7 +348,7 @@ export default function PrayerCalendar() {
             setCoords({ lat: city.lat, lon: city.lon });
             setLocationLabel(city.name);
           }}
-          className="border border-amber-400/60 bg-white/10 text-white rounded-full px-5 py-2.5 text-sm font-semibold outline-none focus:border-amber-300 [&>option]:text-gray-800 min-w-[220px] text-center"
+          className="border border-amber-400/60 bg-white/10 text-white rounded-full px-5 py-2.5 text-sm font-semibold outline-none focus:border-amber-300 [&>option]:text-gray-800 dark:text-gray-100 min-w-[220px] text-center"
         >
           <option value="">Other city (search below)</option>
           {US_CITIES.map((c) => (
@@ -405,7 +405,7 @@ export default function PrayerCalendar() {
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+              className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800 dark:text-gray-100"
             >
               {MONTHS.map((m, i) => (
                 <option key={m} value={i + 1}>{m}</option>
@@ -415,7 +415,7 @@ export default function PrayerCalendar() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800 dark:text-gray-100"
           >
             {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -435,7 +435,7 @@ export default function PrayerCalendar() {
           <select
             value={hijriMonth}
             onChange={(e) => setHijriMonth(Number(e.target.value))}
-            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800 dark:text-gray-100"
           >
             {HIJRI_MONTHS.map((m, i) => (
               <option key={m} value={i + 1}>{m}</option>
@@ -444,7 +444,7 @@ export default function PrayerCalendar() {
           <select
             value={hijriYear}
             onChange={(e) => setHijriYear(Number(e.target.value))}
-            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800"
+            className="border border-white/20 bg-white/10 text-white rounded-full px-4 py-2 text-sm outline-none focus:border-amber-300 [&>option]:text-gray-800 dark:text-gray-100"
           >
             {[hijriYear - 1, hijriYear, hijriYear + 1].map((y) => (
               <option key={y} value={y}>{y} AH</option>

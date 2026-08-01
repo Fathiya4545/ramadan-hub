@@ -69,12 +69,12 @@ export default function SignInModal({ onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">{titles[mode]}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{titles[mode]}</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:text-gray-300 text-2xl leading-none">
             &times;
           </button>
         </div>
@@ -84,7 +84,7 @@ export default function SignInModal({ onClose }) {
             <button
               onClick={handleGoogle}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 rounded-full py-2.5 text-sm font-medium text-gray-700 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-800 rounded-full py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 disabled:opacity-50"
             >
               <svg width="18" height="18" viewBox="0 0 18 18">
                 <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
@@ -97,14 +97,14 @@ export default function SignInModal({ onClose }) {
 
             <div className="flex items-center gap-3 my-4">
               <div className="h-px bg-gray-200 flex-1" />
-              <span className="text-xs text-gray-400">or</span>
+              <span className="text-xs text-gray-400 dark:text-gray-400">or</span>
               <div className="h-px bg-gray-200 flex-1" />
             </div>
           </>
         )}
 
         {mode === 'reset' && (
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Enter your email and we'll send you a link to reset your password.
           </p>
         )}
@@ -116,7 +116,7 @@ export default function SignInModal({ onClose }) {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+            className="w-full px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
           />
           {mode !== 'reset' && (
             <input
@@ -125,7 +125,7 @@ export default function SignInModal({ onClose }) {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+              className="w-full px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
             />
           )}
           {mode === 'signin' && (
@@ -133,7 +133,7 @@ export default function SignInModal({ onClose }) {
               <button
                 type="button"
                 onClick={() => { setMode('reset'); setError(''); setMessage(''); }}
-                className="text-xs text-emerald-700 hover:underline"
+                className="text-xs text-emerald-700 dark:text-emerald-300 hover:underline"
               >
                 Forgot password?
               </button>
@@ -156,11 +156,11 @@ export default function SignInModal({ onClose }) {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-500 mt-4">
+        <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
           {mode === 'signin' && (
             <>
               Don't have an account?{' '}
-              <button onClick={() => { setMode('signup'); setError(''); setMessage(''); }} className="text-emerald-700 font-medium hover:underline">
+              <button onClick={() => { setMode('signup'); setError(''); setMessage(''); }} className="text-emerald-700 dark:text-emerald-300 font-medium hover:underline">
                 Sign up
               </button>
             </>
@@ -168,13 +168,13 @@ export default function SignInModal({ onClose }) {
           {mode === 'signup' && (
             <>
               Already have an account?{' '}
-              <button onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-emerald-700 font-medium hover:underline">
+              <button onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-emerald-700 dark:text-emerald-300 font-medium hover:underline">
                 Sign in
               </button>
             </>
           )}
           {mode === 'reset' && (
-            <button onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-emerald-700 font-medium hover:underline">
+            <button onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-emerald-700 dark:text-emerald-300 font-medium hover:underline">
               &larr; Back to sign in
             </button>
           )}

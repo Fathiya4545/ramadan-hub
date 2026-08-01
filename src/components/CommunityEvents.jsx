@@ -54,7 +54,7 @@ function EventCard({ event, isAdmin, onRemove }) {
   const badge = badgeFor(event.date);
   const ytId = youtubeId(event.videoUrl);
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm text-left flex flex-col">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm text-left flex flex-col">
       {event.imageData && (
         <img src={event.imageData} alt={event.title} className="w-full h-48 object-cover" />
       )}
@@ -78,8 +78,8 @@ function EventCard({ event, isAdmin, onRemove }) {
                 : badge === 'Tomorrow'
                 ? 'bg-amber-100 text-amber-700'
                 : badge === 'Past'
-                ? 'bg-gray-100 text-gray-500'
-                : 'bg-emerald-100 text-emerald-700'
+                ? 'bg-gray-100 text-gray-500 dark:text-gray-400'
+                : 'bg-emerald-100 dark:bg-gray-700 text-emerald-700 dark:text-emerald-300'
             }`}
           >
             {badge}
@@ -93,9 +93,9 @@ function EventCard({ event, isAdmin, onRemove }) {
             </button>
           )}
         </div>
-        <h3 className="font-bold text-gray-800 mt-3 text-lg">{event.title}</h3>
-        {event.description && <p className="text-sm text-gray-500 mt-1">{event.description}</p>}
-        <div className="text-xs text-gray-500 mt-auto pt-4 space-y-0.5">
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 mt-3 text-lg">{event.title}</h3>
+        {event.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{event.description}</p>}
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-auto pt-4 space-y-0.5">
           {event.date && <p>📅 {prettyDate(event.date)}</p>}
           {event.time && <p>🕐 {event.time}</p>}
           {event.location && <p>📍 {event.location}</p>}
@@ -171,8 +171,8 @@ export default function CommunityEvents() {
 
   return (
     <section id="community" className="scroll-mt-20 py-16 px-6 md:px-12 text-center">
-      <h2 className="text-3xl font-bold text-gray-800">Community Events</h2>
-      <p className="text-gray-500 mt-2">Celebrations, gatherings, and what's coming up</p>
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Community Events</h2>
+      <p className="text-gray-500 dark:text-gray-400 mt-2">Celebrations, gatherings, and what's coming up</p>
 
       {error && <p className="text-amber-600 text-sm mt-3">{error}</p>}
 
@@ -190,7 +190,7 @@ export default function CommunityEvents() {
       {isAdmin && showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mt-6 max-w-xl mx-auto bg-white border border-gray-100 rounded-2xl p-6 text-left space-y-3 shadow-sm"
+          className="mt-6 max-w-xl mx-auto bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 text-left space-y-3 shadow-sm"
         >
           <input
             type="text"
@@ -198,28 +198,28 @@ export default function CommunityEvents() {
             placeholder="Event title (e.g. Eid Celebration)"
             value={form.title}
             onChange={(e) => setField('title', e.target.value)}
-            className="w-full px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+            className="w-full px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
           />
           <textarea
             placeholder="Description"
             value={form.description}
             onChange={(e) => setField('description', e.target.value)}
             rows={2}
-            className="w-full px-4 py-2 rounded-2xl border border-gray-200 text-sm outline-none focus:border-emerald-400"
+            className="w-full px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
           />
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="date"
               value={form.date}
               onChange={(e) => setField('date', e.target.value)}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
             />
             <input
               type="text"
               placeholder="Time (e.g. 6:30 PM - 8:30 PM)"
               value={form.time}
               onChange={(e) => setField('time', e.target.value)}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
             />
           </div>
           <input
@@ -227,10 +227,10 @@ export default function CommunityEvents() {
             placeholder="Location (e.g. Abubakr Islamic Center, Tukwila)"
             value={form.location}
             onChange={(e) => setField('location', e.target.value)}
-            className="w-full px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+            className="w-full px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
           />
           <div>
-            <label className="text-xs text-gray-500 font-medium">📷 Event photo (optional)</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">📷 Event photo (optional)</label>
             <input
               ref={fileRef}
               type="file"
@@ -247,7 +247,7 @@ export default function CommunityEvents() {
             placeholder="🎬 YouTube video link (optional)"
             value={form.videoUrl}
             onChange={(e) => setField('videoUrl', e.target.value)}
-            className="w-full px-4 py-2 rounded-full border border-gray-200 text-sm outline-none focus:border-emerald-400"
+            className="w-full px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-emerald-400"
           />
           <button
             type="submit"
@@ -260,9 +260,9 @@ export default function CommunityEvents() {
       )}
 
       <div className="grid md:grid-cols-3 gap-6 mt-10 max-w-5xl mx-auto">
-        {loading && <p className="text-gray-400 text-sm col-span-full">Loading events...</p>}
+        {loading && <p className="text-gray-400 dark:text-gray-400 text-sm col-span-full">Loading events...</p>}
         {!loading && events.length === 0 && (
-          <p className="text-gray-400 text-sm col-span-full">
+          <p className="text-gray-400 dark:text-gray-400 text-sm col-span-full">
             No events posted yet — check back soon!
           </p>
         )}

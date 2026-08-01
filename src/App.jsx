@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
+import { ThemeProvider } from './ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -16,27 +17,29 @@ import SleepPage from './pages/SleepPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/quran" element={<QuranPage />} />
-            <Route path="/names" element={<NamesPage />} />
-            <Route path="/azkar" element={<AzkarPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/parents" element={<ParentsPage />} />
-            <Route path="/today" element={<TodayPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/media" element={<MediaPage />} />
-            <Route path="/sleep" element={<SleepPage />} />
-          </Routes>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <div>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/quran" element={<QuranPage />} />
+              <Route path="/names" element={<NamesPage />} />
+              <Route path="/azkar" element={<AzkarPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/parents" element={<ParentsPage />} />
+              <Route path="/today" element={<TodayPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/media" element={<MediaPage />} />
+              <Route path="/sleep" element={<SleepPage />} />
+            </Routes>
+            <Footer />
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

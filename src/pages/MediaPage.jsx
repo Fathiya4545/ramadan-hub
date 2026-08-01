@@ -87,7 +87,7 @@ function RadioCard({ station, playingId, onToggle }) {
       {isPlaying && (
         <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white dark:bg-gray-800" />
         </span>
       )}
     </button>

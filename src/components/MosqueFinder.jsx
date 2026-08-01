@@ -109,9 +109,9 @@ export default function MosqueFinder() {
     : [21.4225, 39.8262];
 
   return (
-    <section id="mosques" className="scroll-mt-20 bg-emerald-50 py-16 px-6 md:px-12 text-center">
-      <h2 className="text-3xl font-bold text-gray-800">Find Nearby Mosques</h2>
-      <p className="text-gray-500 mt-2">
+    <section id="mosques" className="scroll-mt-20 bg-emerald-50 dark:bg-gray-900 py-16 px-6 md:px-12 text-center">
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Find Nearby Mosques</h2>
+      <p className="text-gray-500 dark:text-gray-400 mt-2">
         Locate mosques near you, search another city, or click anywhere on the map to search that area
       </p>
 
@@ -125,7 +125,7 @@ export default function MosqueFinder() {
           onChange={(e) => setCityQuery(e.target.value)}
           placeholder="Search a city (e.g. Seattle, WA)"
           autoComplete="off"
-          className="px-4 py-2 rounded-full border border-gray-200 text-sm outline-none flex-1"
+          className="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-sm outline-none flex-1"
         />
         <button
           type="submit"
@@ -139,16 +139,16 @@ export default function MosqueFinder() {
       {error && <p className="text-amber-600 text-sm mt-3">{error}</p>}
 
       <div className="grid md:grid-cols-3 gap-6 mt-10 max-w-5xl mx-auto text-left">
-        <div className="bg-white rounded-xl p-4 max-h-96 overflow-y-auto">
-          {loading && <p className="text-gray-400 text-sm">Searching nearby mosques...</p>}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 max-h-96 overflow-y-auto">
+          {loading && <p className="text-gray-400 dark:text-gray-400 text-sm">Searching nearby mosques...</p>}
           {!loading && mosques.length === 0 && !error && (
-            <p className="text-gray-400 text-sm">No mosques found within 10km.</p>
+            <p className="text-gray-400 dark:text-gray-400 text-sm">No mosques found within 10km.</p>
           )}
           {mosques.map((m) => (
-            <div key={m.id} className="border-b border-gray-100 py-3 last:border-0">
-              <div className="font-semibold text-gray-800">{m.name}</div>
+            <div key={m.id} className="border-b border-gray-100 dark:border-gray-700 py-3 last:border-0">
+              <div className="font-semibold text-gray-800 dark:text-gray-100">{m.name}</div>
               {searchPoint && (
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {haversine(searchPoint.lat, searchPoint.lon, m.lat, m.lon).toFixed(1)}km away
                 </div>
               )}

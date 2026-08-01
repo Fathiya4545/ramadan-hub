@@ -20,9 +20,17 @@ export default async function handler(req, res) {
     try {
       const controller = new AbortController();
       const tid = setTimeout(() => controller.abort(), 20000);
+      // Overpass wants the query form-encoded as `data=`, and the mirrors
+      // reject or rate-limit requests that don't identify themselves with a
+      // meaningful User-Agent (fetch's default gets a 406/429).
       const upstream = await fetch(endpoint, {
         method: 'POST',
-        body: query,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'MedinaApp/1.0 (+https://github.com/Dhool143; mosque finder)',
+          Accept: 'application/json',
+        },
+        body: new URLSearchParams({ data: query }).toString(),
         signal: controller.signal,
       });
       clearTimeout(tid);

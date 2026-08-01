@@ -175,6 +175,9 @@ export async function fetchNearbyMosques(lat, lon, radiusMeters = 10000) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Server error ${res.status}`);
   }
+  if (!res.headers.get('content-type')?.includes('application/json')) {
+    throw new Error('the mosque API did not respond with JSON');
+  }
   const json = await res.json();
   return json.elements.map((el) => ({
     id: el.id,

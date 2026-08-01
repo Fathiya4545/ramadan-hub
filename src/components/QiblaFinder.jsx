@@ -115,17 +115,17 @@ export default function QiblaFinder() {
   const rotation = bearing != null ? (heading != null ? bearing - heading : bearing) : 0;
 
   return (
-    <section id="qibla" className="scroll-mt-20 bg-emerald-50 py-16 px-6 md:px-12 text-center">
-      <h2 className="text-3xl font-bold text-gray-800">Qibla Direction</h2>
-      <p className="text-gray-500 mt-2">Find the direction to the Kaaba in Mecca from your location</p>
+    <section id="qibla" className="scroll-mt-20 bg-emerald-50 dark:bg-gray-900 py-16 px-6 md:px-12 text-center">
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Qibla Direction</h2>
+      <p className="text-gray-500 dark:text-gray-400 mt-2">Find the direction to the Kaaba in Mecca from your location</p>
 
       {error && <p className="text-amber-600 text-sm mt-3">{error}</p>}
 
       {bearing != null && (
         <div className="mt-10 flex flex-col items-center">
           <div className="relative w-56 h-56">
-            <div className="absolute inset-0 rounded-full bg-white border-4 border-emerald-200 shadow-sm" />
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-gray-400">
+            <div className="absolute inset-0 rounded-full bg-white dark:bg-gray-800 border-4 border-emerald-200 shadow-sm" />
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-gray-400 dark:text-gray-400">
               N
             </div>
             <div
@@ -133,17 +133,17 @@ export default function QiblaFinder() {
               style={{ transform: `rotate(${rotation}deg)` }}
             >
               <div className="flex flex-col items-center">
-                <span className="text-emerald-700 text-3xl leading-none">↑</span>
-                <span className="text-xs text-emerald-700 font-medium mt-1">🕋</span>
+                <span className="text-emerald-700 dark:text-emerald-300 text-3xl leading-none">↑</span>
+                <span className="text-xs text-emerald-700 dark:text-emerald-300 font-medium mt-1">🕋</span>
               </div>
             </div>
           </div>
 
-          <p className="text-gray-700 mt-6 font-medium">
+          <p className="text-gray-700 dark:text-gray-200 mt-6 font-medium">
             Qibla is {bearing.toFixed(1)}° from true north
           </p>
           {coords && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
               Your location: {coords.lat.toFixed(2)}, {coords.lon.toFixed(2)}
             </p>
           )}
@@ -156,13 +156,13 @@ export default function QiblaFinder() {
               >
                 Enable Live Compass
               </button>
-              <p className="text-xs text-gray-400 mt-2 max-w-xs">
+              <p className="text-xs text-gray-400 dark:text-gray-400 mt-2 max-w-xs">
                 Without this, the arrow shows a fixed direction and won't move as you turn your phone.
               </p>
             </>
           )}
           {compassEnabled && heading == null && !compassTimedOut && (
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-gray-400 dark:text-gray-400 mt-3">
               Waiting for compass data&hellip; move your device in a figure-8 to calibrate.
             </p>
           )}

@@ -39,17 +39,17 @@ export default function VerseOfDay() {
 
   return (
     <section id="verse-of-day" className="scroll-mt-20 py-16 px-6 text-center">
-      <h2 className="text-3xl font-bold text-gray-800">Verse of the Day</h2>
-      {verse && <p className="text-gray-500 mt-2">From Surah {verse.surahName}</p>}
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Verse of the Day</h2>
+      {verse && <p className="text-gray-500 dark:text-gray-400 mt-2">From Surah {verse.surahName}</p>}
 
       {error && <p className="text-amber-600 text-sm mt-4">{error}</p>}
 
       {verse ? (
         <>
-          <p dir="rtl" className="text-3xl text-emerald-800 mt-8 leading-relaxed max-w-2xl mx-auto">
+          <p dir="rtl" className="text-3xl text-emerald-800 dark:text-emerald-300 mt-8 leading-relaxed max-w-2xl mx-auto">
             {verse.arabicText}
           </p>
-          <p className="text-gray-600 mt-4 max-w-xl mx-auto italic">{verse.translationText}</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-4 max-w-xl mx-auto italic">{verse.translationText}</p>
           <div className="flex gap-4 justify-center mt-6">
             <button
               onClick={togglePlay}
@@ -59,7 +59,7 @@ export default function VerseOfDay() {
             </button>
             <button
               onClick={handleShare}
-              className="border border-emerald-600 text-emerald-700 px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-50"
+              className="border border-emerald-600 text-emerald-700 dark:text-emerald-300 px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-50 dark:bg-gray-900"
             >
               ↗ Share
             </button>
@@ -71,8 +71,8 @@ export default function VerseOfDay() {
               className="w-20 h-20 rounded-full object-cover border-2 border-emerald-300 shadow-sm"
             />
             <div className="text-left">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Recitation by</p>
-              <p className="font-semibold text-gray-800">Sheikh Mishary Rashid Al-Afasy</p>
+              <p className="text-xs text-gray-400 dark:text-gray-400 uppercase tracking-wide">Recitation by</p>
+              <p className="font-semibold text-gray-800 dark:text-gray-100">Sheikh Mishary Rashid Al-Afasy</p>
             </div>
           </div>
           <audio
@@ -82,7 +82,7 @@ export default function VerseOfDay() {
           />
         </>
       ) : (
-        !error && <p className="text-gray-400 mt-8">Loading verse...</p>
+        !error && <p className="text-gray-400 dark:text-gray-400 mt-8">Loading verse...</p>
       )}
     </section>
   );
