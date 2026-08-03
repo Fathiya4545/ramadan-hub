@@ -67,17 +67,25 @@ export async function fetchSurah(number) {
   };
 }
 
-export async function fetchPrayerTimesByCoords(lat, lon) {
+// Aladhan takes the date as a DD-MM-YYYY path segment; omitting it means today.
+function datePath(date) {
+  if (!date) return '';
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return `/${dd}-${mm}-${date.getFullYear()}`;
+}
+
+export async function fetchPrayerTimesByCoords(lat, lon, date) {
   const res = await fetch(
-    `${PRAYER_BASE}/timings?latitude=${lat}&longitude=${lon}&method=2`
+    `${PRAYER_BASE}/timings${datePath(date)}?latitude=${lat}&longitude=${lon}&method=2`
   );
   const json = await res.json();
   return { timings: json.data.timings, timezone: json.data.meta.timezone };
 }
 
-export async function fetchPrayerTimesByCity(city, country) {
+export async function fetchPrayerTimesByCity(city, country, date) {
   const res = await fetch(
-    `${PRAYER_BASE}/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`
+    `${PRAYER_BASE}/timingsByCity${datePath(date)}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`
   );
   const json = await res.json();
   if (json.code !== 200) {

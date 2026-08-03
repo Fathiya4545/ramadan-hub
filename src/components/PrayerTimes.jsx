@@ -1,22 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchPrayerTimesByCoords, fetchPrayerTimesByCity } from '../api';
-import sunsetMosque from '../assets/sunset.JPG';
 
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const AZAN_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const ADHAN_AUDIO_URL = 'https://cdn.aladhan.com/audio/adhans/a4.mp3';
 
+// Iqama is set by each mosque and isn't in any prayer-time API, so these are
+// only common starting points — the user adjusts them to their own masjid.
+const DEFAULT_IQAMA = { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 };
+const DEFAULT_JUMMAH = { first: '13:00', second: '14:00' };
+
+const GOLD = '#e0bd6b';
+const NAVY_SECTION = '#0a1729';
+const NAVY_CARD = '#0f2340';
+const NAVY_RAISED = '#1a3560';
+
+function loadStored(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function toMinutes(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
+  const [h, m] = timeStr.trim().slice(0, 5).split(':').map(Number);
   return h * 60 + m;
 }
 
-function formatCountdown(ms) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(totalSeconds / 3600);
-  const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-  const s = String(totalSeconds % 60).padStart(2, '0');
-  return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+function minutesToLabel(total) {
+  const wrapped = ((total % 1440) + 1440) % 1440;
+  const h24 = Math.floor(wrapped / 60);
+  const m = String(wrapped % 60).padStart(2, '0');
+  const suffix = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${m} ${suffix}`;
 }
 
 function getNowInTimezone(timezone) {
@@ -38,107 +58,126 @@ function getNowInTimezone(timezone) {
   const hour = parseInt(get('hour'), 10) % 24;
   const minute = parseInt(get('minute'), 10);
   const second = parseInt(get('second'), 10);
-  const dateKey = `${get('year')}-${get('month')}-${get('day')}`;
-  return { minutes: hour * 60 + minute, seconds: second, dateKey };
+  return { minutes: hour * 60 + minute, seconds: second, dateKey: `${get('year')}-${get('month')}-${get('day')}` };
 }
 
-const MOSQUE_BACKDROP = {
-  backgroundImage: `linear-gradient(180deg, rgba(15,10,30,0.15) 0%, rgba(15,10,30,0.45) 55%, rgba(10,8,25,0.8) 100%), url(${sunsetMosque})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center 30%',
-};
+function isSameDay(a, b) {
+  return a.toDateString() === b.toDateString();
+}
+
+function CountdownBox({ value, label }) {
+  return (
+    <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: NAVY_RAISED }}>
+      <p className="text-3xl md:text-4xl font-bold tabular-nums" style={{ color: GOLD }}>
+        {String(value).padStart(2, '0')}
+      </p>
+      <p className="text-[10px] md:text-xs tracking-widest text-white/50 mt-1">{label}</p>
+    </div>
+  );
+}
 
 export default function PrayerTimes() {
   const [timings, setTimings] = useState(null);
   const [timezone, setTimezone] = useState(null);
   const [error, setError] = useState(null);
-  const [now, setNow] = useState(Date.now());
+  const [, setTick] = useState(0);
   const [locationLabel, setLocationLabel] = useState('your location');
+  const [source, setSource] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
-  const [loadingCity, setLoadingCity] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [azanEnabled, setAzanEnabled] = useState(true);
   const [playingAzan, setPlayingAzan] = useState(null);
   const [showCitySearch, setShowCitySearch] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [iqamaOffsets, setIqamaOffsets] = useState(() => loadStored('iqamaOffsets', DEFAULT_IQAMA));
+  const [jummah, setJummah] = useState(() => loadStored('jummahTimes', DEFAULT_JUMMAH));
   const audioRef = useRef(null);
   const lastTriggeredRef = useRef(null);
 
+  const viewingToday = isSameDay(selectedDate, new Date());
+
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(tick);
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
   }, []);
 
   useEffect(() => {
+    localStorage.setItem('iqamaOffsets', JSON.stringify(iqamaOffsets));
+  }, [iqamaOffsets]);
+
+  useEffect(() => {
+    localStorage.setItem('jummahTimes', JSON.stringify(jummah));
+  }, [jummah]);
+
+  // Pick a location once; the fetch effect below reacts to it and the date.
+  useEffect(() => {
     if (!navigator.geolocation) {
-      setError('Geolocation unavailable, using default location.');
+      setError('Geolocation unavailable, showing Makkah.');
       setLocationLabel('Makkah');
-      fetchPrayerTimesByCoords(21.4225, 39.8262)
-        .then((data) => {
-          setTimings(data.timings);
-          setTimezone(data.timezone);
-        })
-        .catch(() => setError('Could not load prayer times.'));
+      setSource({ type: 'coords', lat: 21.4225, lon: 39.8262 });
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        fetchPrayerTimesByCoords(pos.coords.latitude, pos.coords.longitude)
-          .then((data) => {
-            setTimings(data.timings);
-            setTimezone(data.timezone);
-          })
-          .catch(() => setError('Could not load prayer times.'));
-      },
+      (pos) => setSource({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude }),
       () => {
-        setError('Location denied, showing Makkah prayer times.');
+        setError('Location denied, showing Makkah.');
         setLocationLabel('Makkah');
-        fetchPrayerTimesByCoords(21.4225, 39.8262)
-          .then((data) => {
-            setTimings(data.timings);
-            setTimezone(data.timezone);
-          })
-          .catch(() => setError('Could not load prayer times.'));
+        setSource({ type: 'coords', lat: 21.4225, lon: 39.8262 });
       }
     );
   }, []);
 
+  useEffect(() => {
+    if (!source) return;
+    let cancelled = false;
+    setLoading(true);
+    const request =
+      source.type === 'coords'
+        ? fetchPrayerTimesByCoords(source.lat, source.lon, selectedDate)
+        : fetchPrayerTimesByCity(source.city, source.country, selectedDate);
+    request
+      .then((data) => {
+        if (cancelled) return;
+        setTimings(data.timings);
+        setTimezone(data.timezone);
+      })
+      .catch(() => !cancelled && setError('Could not load prayer times.'))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [source, selectedDate]);
+
   function handleCitySearch(e) {
     e.preventDefault();
     if (!city || !country) return;
-    setLoadingCity(true);
     setError(null);
-    fetchPrayerTimesByCity(city, country)
-      .then((data) => {
-        setTimings(data.timings);
-        setTimezone(data.timezone);
-        setLocationLabel(city);
-      })
-      .catch(() => setError(`Could not find prayer times for "${city}, ${country}". Check the spelling and try again.`))
-      .finally(() => setLoadingCity(false));
+    setSource({ type: 'city', city, country });
+    setLocationLabel(city);
   }
 
   function handleUseMyLocation() {
     if (!navigator.geolocation) return;
     setError(null);
-    setLoadingCity(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        fetchPrayerTimesByCoords(pos.coords.latitude, pos.coords.longitude)
-          .then((data) => {
-            setTimings(data.timings);
-            setTimezone(data.timezone);
-            setLocationLabel('your location');
-            setCity('');
-            setCountry('');
-          })
-          .catch(() => setError('Could not load prayer times.'))
-          .finally(() => setLoadingCity(false));
+        setSource({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setLocationLabel('your location');
+        setCity('');
+        setCountry('');
       },
-      () => {
-        setError('Location access denied.');
-        setLoadingCity(false);
-      }
+      () => setError('Location access denied.')
     );
+  }
+
+  function shiftDay(delta) {
+    setSelectedDate((d) => {
+      const next = new Date(d);
+      next.setDate(next.getDate() + delta);
+      return next;
+    });
   }
 
   function playAzanNow(prayerName) {
@@ -153,187 +192,296 @@ export default function PrayerTimes() {
     setPlayingAzan(null);
   }
 
-  let nextPrayer = null;
-  let msUntilNext = null;
-  let progressPercent = 0;
+  const iqamaFor = (prayer) => timings && toMinutes(timings[prayer]) + (Number(iqamaOffsets[prayer]) || 0);
 
-  if (timings) {
+  let currentPrayer = null;
+  let countdown = null;
+  let countdownTarget = null;
+
+  if (timings && viewingToday) {
     const { minutes: nowMinutes, seconds: nowSeconds, dateKey } = getNowInTimezone(timezone);
-    const azanMinutes = AZAN_PRAYERS.map((p) => ({ name: p, minutes: toMinutes(timings[p]) }));
+    const schedule = AZAN_PRAYERS.map((p) => ({ name: p, athan: toMinutes(timings[p]), iqama: iqamaFor(p) }));
 
     if (azanEnabled) {
-      const dueNow = azanMinutes.find((p) => p.minutes === nowMinutes);
-      if (dueNow) {
-        const key = `${dateKey}-${dueNow.name}`;
-        if (lastTriggeredRef.current !== key) {
-          lastTriggeredRef.current = key;
-          playAzanNow(dueNow.name);
-        }
+      const due = schedule.find((p) => p.athan === nowMinutes);
+      if (due && lastTriggeredRef.current !== `${dateKey}-${due.name}`) {
+        lastTriggeredRef.current = `${dateKey}-${due.name}`;
+        playAzanNow(due.name);
       }
     }
 
-    let upcoming = azanMinutes.find((p) => p.minutes > nowMinutes);
-    let prevMinutes;
-    if (!upcoming) {
-      upcoming = { ...azanMinutes[0], minutes: azanMinutes[0].minutes + 1440 };
-      prevMinutes = azanMinutes[azanMinutes.length - 1].minutes;
+    const passed = schedule.filter((p) => p.athan <= nowMinutes);
+    currentPrayer = passed.length ? passed[passed.length - 1] : schedule[schedule.length - 1];
+
+    // Count down to this prayer's iqama while it's still ahead, otherwise to
+    // the next athan — which is what the reference layout shows.
+    const nowSec = nowMinutes * 60 + nowSeconds;
+    if (passed.length && currentPrayer.iqama > nowMinutes) {
+      countdownTarget = 'IQAMA';
+      countdown = currentPrayer.iqama * 60 - nowSec;
     } else {
-      const idx = azanMinutes.findIndex((p) => p.name === upcoming.name);
-      prevMinutes = idx === 0 ? azanMinutes[azanMinutes.length - 1].minutes - 1440 : azanMinutes[idx - 1].minutes;
+      const upcoming = schedule.find((p) => p.athan > nowMinutes);
+      countdownTarget = upcoming ? upcoming.name.toUpperCase() : schedule[0].name.toUpperCase();
+      countdown = (upcoming ? upcoming.athan : schedule[0].athan + 1440) * 60 - nowSec;
     }
-    nextPrayer = upcoming.name;
-    const secondsNow = nowMinutes * 60 + nowSeconds;
-    const secondsTarget = upcoming.minutes * 60;
-    msUntilNext = (secondsTarget - secondsNow) * 1000;
-    const total = (upcoming.minutes - prevMinutes) * 60;
-    const elapsed = total - (secondsTarget - secondsNow);
-    progressPercent = Math.min(100, Math.max(0, (elapsed / total) * 100));
   }
 
-  const recentDays = Array.from({ length: 5 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    return d;
-  });
+  const totalSec = Math.max(0, countdown ?? 0);
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
 
   return (
-    <section id="prayer-times" className="scroll-mt-20 relative overflow-hidden min-h-[640px]" style={MOSQUE_BACKDROP}>
-
-      {/* Top countdown bar, like the reference app */}
-      <div className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4 bg-black/25 backdrop-blur-sm">
-        <p className="text-white font-semibold text-lg">
-          {nextPrayer ? `${nextPrayer} in ` : 'Loading '}
-          <span className="font-bold">{msUntilNext != null ? formatCountdown(msUntilNext) : '--:--'}</span>
-        </p>
-        <button
-          onClick={() => (playingAzan ? stopAzan() : nextPrayer && playAzanNow(nextPrayer))}
-          className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-bold px-4 py-2 rounded-full"
-        >
-          🔔 {playingAzan ? 'STOP' : 'ATHAN'}
-        </button>
-      </div>
-
-      {/* Day picker row */}
-      <div className="relative z-10 flex gap-4 px-6 md:px-12 py-6 overflow-x-auto">
-        {recentDays.map((d, i) => (
-          <div key={d.toDateString()} className="flex flex-col items-center gap-1.5 shrink-0">
-            <div
-              className={`w-16 h-16 rounded-full bg-white/15 backdrop-blur border-2 flex items-center justify-center text-white/70 text-xs ${
-                i === 0 ? 'border-white' : 'border-white/30'
-              }`}
-            >
-              {d.getDate()}
-            </div>
-            <span className="text-white/80 text-xs font-medium">
-              {d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="relative z-10 px-6 md:px-12 pb-16">
-        <div className="flex items-center gap-2 mb-4">
-          <p className="text-white font-bold text-xl">Today</p>
-          <button
-            onClick={() => setShowCitySearch((s) => !s)}
-            className="text-white/70 hover:text-white text-sm underline decoration-dotted"
+    <section id="prayer-times" className="scroll-mt-20 py-10 px-4 md:px-8" style={{ background: NAVY_SECTION }}>
+      <div className="max-w-2xl mx-auto">
+        {/* Current prayer + iqama */}
+        <div className="rounded-3xl overflow-hidden" style={{ background: NAVY_CARD }}>
+          <div
+            className="flex items-center justify-between px-6 py-5"
+            style={{ background: 'linear-gradient(90deg,#1c4270 0%,#17395f 100%)' }}
           >
-            {locationLabel}
+            <div>
+              <p className="text-xs font-semibold tracking-wide" style={{ color: GOLD }}>
+                {viewingToday ? 'Current Prayer' : 'Schedule for'}
+              </p>
+              <p className="text-3xl font-bold text-white mt-0.5">
+                {viewingToday ? currentPrayer?.name || '—' : selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
+              </p>
+            </div>
+            {viewingToday && currentPrayer && (
+              <div className="rounded-2xl px-4 py-2 text-center bg-white/10 backdrop-blur">
+                <p className="text-[10px] tracking-widest text-white/60">IQAMA</p>
+                <p className="text-lg font-bold text-white">{minutesToLabel(currentPrayer.iqama)}</p>
+              </div>
+            )}
+          </div>
+
+          {viewingToday && (
+            <div className="flex items-center gap-2 px-4 py-4">
+              <CountdownBox value={hrs} label="HOURS" />
+              <span className="text-white/30 font-bold">.</span>
+              <CountdownBox value={mins} label="MINUTES" />
+              <span className="text-white/30 font-bold">.</span>
+              <CountdownBox value={secs} label="SECONDS" />
+            </div>
+          )}
+        </div>
+
+        {viewingToday && countdownTarget && (
+          <p className="text-center text-white/40 text-xs mt-2">until {countdownTarget}</p>
+        )}
+
+        {/* Date navigation */}
+        <div className="flex items-center justify-between gap-3 mt-6">
+          <button
+            onClick={() => shiftDay(-1)}
+            className="flex items-center gap-2 rounded-full px-5 py-3 text-white font-medium hover:brightness-125 transition"
+            style={{ background: NAVY_RAISED }}
+          >
+            ← Prev
+          </button>
+          <button
+            onClick={() => setSelectedDate(new Date())}
+            title="Back to today"
+            className="flex-1 rounded-full px-4 py-3 font-semibold text-center hover:brightness-95 transition"
+            style={{ background: GOLD, color: '#12233d' }}
+          >
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
+          </button>
+          <button
+            onClick={() => shiftDay(1)}
+            className="flex items-center gap-2 rounded-full px-5 py-3 text-white font-medium hover:brightness-125 transition"
+            style={{ background: NAVY_RAISED }}
+          >
+            Next →
           </button>
         </div>
 
-        {showCitySearch && (
-          <form
-            onSubmit={handleCitySearch}
-            className="flex flex-col sm:flex-row gap-2 mb-4 max-w-md"
-          >
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City (e.g. Cairo)"
-              autoComplete="off"
-              className="px-4 py-2 rounded-full border border-white/20 bg-white/10 text-white placeholder-white/50 text-sm outline-none flex-1"
-            />
-            <input
-              type="text"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="Country (e.g. Egypt)"
-              autoComplete="off"
-              className="px-4 py-2 rounded-full border border-white/20 bg-white/10 text-white placeholder-white/50 text-sm outline-none flex-1"
-            />
+        {/* Schedule header */}
+        <div
+          className="flex items-center justify-between rounded-2xl px-5 py-4 mt-6 border border-white/5"
+          style={{ background: NAVY_CARD }}
+        >
+          <div>
+            <h2 className="text-2xl font-bold text-white">Prayer Times</h2>
             <button
-              type="submit"
-              disabled={loadingCity}
-              className="bg-sky-500 hover:bg-sky-400 disabled:bg-gray-400 text-white px-5 py-2 rounded-full text-sm font-semibold"
+              onClick={() => setShowCitySearch((s) => !s)}
+              className="flex items-center gap-1.5 text-sm mt-0.5 rounded-full px-2.5 py-1 -ml-2.5 hover:bg-white/10 transition"
+              style={{ color: GOLD }}
             >
-              {loadingCity ? '...' : 'Search'}
+              📍 {loading ? 'Loading…' : locationLabel}
+              <span className="text-white/40 text-xs">Change</span>
             </button>
-          </form>
-        )}
+          </div>
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center text-xl"
+            style={{ background: 'rgba(224,189,107,0.15)' }}
+          >
+            🕐
+          </div>
+        </div>
 
         {showCitySearch && (
-          <button
-            onClick={handleUseMyLocation}
-            className="text-white/70 text-xs font-medium hover:underline mb-4 block"
-          >
-            Use my current location instead
-          </button>
+          <div className="mt-3 rounded-2xl p-4" style={{ background: NAVY_CARD }}>
+            <form onSubmit={handleCitySearch} className="flex flex-col sm:flex-row gap-2">
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City (e.g. Cairo)"
+                autoComplete="off"
+                className="flex-1 px-4 py-2 rounded-full bg-white/10 text-white placeholder-white/40 text-sm outline-none border border-white/10"
+              />
+              <input
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Country (e.g. Egypt)"
+                autoComplete="off"
+                className="flex-1 px-4 py-2 rounded-full bg-white/10 text-white placeholder-white/40 text-sm outline-none border border-white/10"
+              />
+              <button type="submit" className="px-5 py-2 rounded-full text-sm font-semibold" style={{ background: GOLD, color: '#12233d' }}>
+                Search
+              </button>
+            </form>
+            <button onClick={handleUseMyLocation} className="text-white/50 text-xs hover:text-white mt-3">
+              Use my current location instead
+            </button>
+          </div>
         )}
 
-        <label className="flex items-center gap-2 mb-6 text-sm text-white/80">
-          <input
-            type="checkbox"
-            checked={azanEnabled}
-            onChange={(e) => setAzanEnabled(e.target.checked)}
-            className="accent-sky-400"
-          />
-          Play Azan automatically at prayer time
-        </label>
+        {/* A silent Makkah fallback looks like plain wrong prayer times, so make
+            the cause and both fixes obvious. */}
+        {error && (
+          <div className="rounded-2xl px-4 py-3 mt-3 border border-amber-400/30 bg-amber-400/10">
+            <p className="text-amber-200 text-sm">{error}</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button
+                onClick={handleUseMyLocation}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold"
+                style={{ background: GOLD, color: '#12233d' }}
+              >
+                Use my location
+              </button>
+              <button
+                onClick={() => setShowCitySearch(true)}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white hover:bg-white/20"
+              >
+                Search my city
+              </button>
+            </div>
+          </div>
+        )}
 
-        {error && <p className="text-amber-300 text-sm mb-4">{error}</p>}
-
-        <div className="grid grid-cols-3 gap-3 max-w-2xl">
+        {/* Times table */}
+        <div className="rounded-2xl overflow-hidden mt-4 border border-white/5">
+          <div className="grid grid-cols-3 px-5 py-3 text-sm text-white/60" style={{ background: NAVY_RAISED }}>
+            <span>Prayer</span>
+            <span className="text-right">Athan</span>
+            <span className="text-right">Iqama</span>
+          </div>
           {PRAYER_ORDER.map((p) => {
-            const isNext = p === nextPrayer;
+            const isCurrent = viewingToday && currentPrayer?.name === p;
+            const showIqama = AZAN_PRAYERS.includes(p);
             return (
               <div
                 key={p}
-                className={`rounded-2xl p-4 backdrop-blur-md border ${
-                  isNext
-                    ? 'bg-black/70 border-sky-400'
-                    : 'bg-white/10 border-white/10'
-                }`}
+                className="grid grid-cols-3 items-center px-5 py-4 border-t border-white/5"
+                style={{ background: isCurrent ? 'rgba(224,189,107,0.10)' : NAVY_CARD }}
               >
-                <div className="flex justify-end">
-                  <span className="text-sky-300 text-sm">🔔</span>
-                </div>
-                <p className="text-white/70 text-sm mt-2">{p}</p>
-                <p className={`font-bold text-lg mt-0.5 ${isNext ? 'text-sky-300' : 'text-white'}`}>
-                  {timings ? timings[p] : '--:--'}
-                </p>
-                {timings && AZAN_PRAYERS.includes(p) && (
-                  <button
-                    onClick={() => playAzanNow(p)}
-                    className="text-[10px] text-white/50 hover:text-white/80 mt-1"
-                  >
-                    ▶ Preview Azan
-                  </button>
-                )}
+                <span className="text-white font-medium flex items-center gap-2">
+                  {p}
+                  {showIqama && timings && (
+                    <button
+                      onClick={() => (playingAzan === p ? stopAzan() : playAzanNow(p))}
+                      title={playingAzan === p ? 'Stop azan' : 'Play azan'}
+                      className="text-white/30 hover:text-white text-xs"
+                    >
+                      {playingAzan === p ? '⏸' : '▶'}
+                    </button>
+                  )}
+                </span>
+                <span className="text-right text-white/90 tabular-nums">
+                  {timings ? minutesToLabel(toMinutes(timings[p])) : '—'}
+                </span>
+                <span className="text-right tabular-nums" style={{ color: showIqama ? GOLD : 'rgba(255,255,255,0.25)' }}>
+                  {timings && showIqama ? minutesToLabel(iqamaFor(p)) : '—'}
+                </span>
               </div>
             );
           })}
         </div>
 
-        <div className="mt-6 max-w-2xl">
-          <div className="w-full bg-white/15 rounded-full h-1.5">
-            <div
-              className="bg-sky-400 h-1.5 rounded-full transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+        <label className="flex items-center gap-2 mt-4 text-sm text-white/60">
+          <input type="checkbox" checked={azanEnabled} onChange={(e) => setAzanEnabled(e.target.checked)} className="accent-amber-400" />
+          Play azan automatically at prayer time
+        </label>
+
+        {/* Jummah */}
+        <div className="rounded-2xl px-5 py-4 mt-5 border-l-4" style={{ background: NAVY_CARD, borderColor: GOLD }}>
+          <p className="text-white font-bold flex items-center gap-2">🕌 Jummah Prayer</p>
+          <p className="text-white/70 mt-1">
+            1st: {minutesToLabel(toMinutes(jummah.first))} &nbsp;•&nbsp; 2nd: {minutesToLabel(toMinutes(jummah.second))}
+          </p>
         </div>
+
+        {/* Iqama / Jummah are mosque-specific, so let people correct them. */}
+        <button
+          onClick={() => setShowSettings((s) => !s)}
+          className="text-white/40 hover:text-white/70 text-xs mt-4 underline decoration-dotted"
+        >
+          {showSettings ? 'Hide' : 'Set iqama & Jummah times for my mosque'}
+        </button>
+
+        {showSettings && (
+          <div className="rounded-2xl p-5 mt-3" style={{ background: NAVY_CARD }}>
+            <p className="text-white/50 text-xs mb-3">
+              Iqama isn&apos;t provided by any prayer-time API — it&apos;s set by each mosque. These are minutes after the
+              athan; adjust them to match yours.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {AZAN_PRAYERS.map((p) => (
+                <label key={p} className="text-xs text-white/60">
+                  {p}
+                  <input
+                    type="number"
+                    min="0"
+                    max="120"
+                    value={iqamaOffsets[p]}
+                    onChange={(e) => setIqamaOffsets((o) => ({ ...o, [p]: e.target.value }))}
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-white/10 text-white text-sm outline-none border border-white/10"
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <label className="text-xs text-white/60">
+                Jummah 1st
+                <input
+                  type="time"
+                  value={jummah.first}
+                  onChange={(e) => setJummah((j) => ({ ...j, first: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-white/10 text-white text-sm outline-none border border-white/10"
+                />
+              </label>
+              <label className="text-xs text-white/60">
+                Jummah 2nd
+                <input
+                  type="time"
+                  value={jummah.second}
+                  onChange={(e) => setJummah((j) => ({ ...j, second: e.target.value }))}
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-white/10 text-white text-sm outline-none border border-white/10"
+                />
+              </label>
+            </div>
+          </div>
+        )}
+
+        <Link
+          to="/calendar"
+          className="flex items-center justify-center gap-2 rounded-2xl py-4 mt-6 font-bold hover:brightness-95 transition"
+          style={{ background: GOLD, color: '#12233d' }}
+        >
+          🗓 View Monthly Schedule
+        </Link>
       </div>
 
       <audio ref={audioRef} onEnded={() => setPlayingAzan(null)} />

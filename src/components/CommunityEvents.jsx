@@ -53,6 +53,18 @@ function prettyDate(dateStr) {
 function EventCard({ event, isAdmin, onRemove }) {
   const badge = badgeFor(event.date);
   const ytId = youtubeId(event.videoUrl);
+  const [confirming, setConfirming] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  async function confirmRemove() {
+    setRemoving(true);
+    try {
+      await onRemove(event.id);
+    } finally {
+      setRemoving(false);
+      setConfirming(false);
+    }
+  }
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm text-left flex flex-col">
       {event.imageData && (
@@ -84,13 +96,33 @@ function EventCard({ event, isAdmin, onRemove }) {
           >
             {badge}
           </span>
-          {isAdmin && (
+          {isAdmin && !confirming && (
             <button
-              onClick={() => onRemove(event.id)}
-              className="ml-auto text-xs text-red-400 hover:text-red-600"
+              onClick={() => setConfirming(true)}
+              className="ml-auto text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full px-2.5 py-1"
             >
-              Remove
+              🗑 Remove
             </button>
+          )}
+          {isAdmin && confirming && (
+            // Deleting is permanent, so make it a deliberate second click.
+            <span className="ml-auto flex items-center gap-1.5">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
+              <button
+                onClick={confirmRemove}
+                disabled={removing}
+                className="text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 rounded-full px-2.5 py-1"
+              >
+                {removing ? 'Removing…' : 'Yes'}
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                disabled={removing}
+                className="text-xs text-gray-600 dark:text-gray-300 hover:underline"
+              >
+                Cancel
+              </button>
+            </span>
           )}
         </div>
         <h3 className="font-bold text-gray-800 dark:text-gray-100 mt-3 text-lg">{event.title}</h3>
@@ -119,9 +151,14 @@ export default function CommunityEvents() {
   const isAdmin = !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
 
   useEffect(() => {
-    fetchEvents()
+    // The Firestore SDK retries connection failures instead of rejecting, so
+    // without a deadline the section sits on "Loading events..." forever.
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timed out')), 12000)
+    );
+    Promise.race([fetchEvents(), timeout])
       .then(setEvents)
-      .catch(() => setError('Could not load events.'))
+      .catch(() => setError('Could not load events. Please try again later.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -165,8 +202,14 @@ export default function CommunityEvents() {
   }
 
   async function handleRemove(id) {
-    await removeEvent(id);
-    setEvents((evts) => evts.filter((e) => e.id !== id));
+    setError(null);
+    try {
+      await removeEvent(id);
+      setEvents((evts) => evts.filter((e) => e.id !== id));
+    } catch (err) {
+      // Without this the card stayed on screen with no hint the delete failed.
+      setError(`Could not remove that event (${err.message}). It is still posted.`);
+    }
   }
 
   return (
