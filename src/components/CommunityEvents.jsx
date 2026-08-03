@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { addEvent, fetchEvents, removeEvent } from '../userData';
 
-const ADMIN_EMAILS = ['fathiyayoosef@gmail.com'];
+// Must stay in sync with the admin emails in firestore.rules — the list here
+// only decides whether the buttons render; the rules decide what actually saves.
+const ADMIN_EMAILS = ['fathiyayoosef@gmail.com', 'fathiyayoosef85@gmail.com'];
 
 const EMPTY_FORM = { title: '', date: '', time: '', location: '', description: '', videoUrl: '' };
 

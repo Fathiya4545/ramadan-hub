@@ -5,30 +5,43 @@ import misharyImg from '../assets/Sheekh Mashery.JPG';
 import ruqyahImg from '../assets/beutifal masjid.jpg';
 import fatwaImg from '../assets/masjid.jpg';
 import abdulBasitImg from '../assets/Makkah.jpg';
+import makkahImg from '../assets/Makkah.jpg';
+import madinahImg from '../assets/Masjid-optimized.jpg';
+import islamChannelImg from '../assets/beutifal masjid.jpg';
 
+// These are live broadcast IDs, so they die whenever the streamer restarts the
+// stream — which is how the previous set went dead. YouTube's
+// embed/live_stream?channel= form looks like the durable fix but renders
+// "video is unavailable" for these channels, so each ID below was checked for
+// isLiveNow AND playableInEmbed. Re-verify if a card ever goes black.
+// Channel fallbacks: Makkah UCfBw_uwZb_oFLyVsjWk6owQ, Madinah UCOfsSW9j8JKlhbrMY39df5A
 const LIVE_TV = [
   {
     id: 'makkah',
     name: 'Makkah Live HD',
     desc: 'Live 24/7 from Masjid al-Haram',
-    embedUrl: 'https://www.youtube.com/embed/m9-Umj3aL1I?autoplay=1',
-    thumb: 'https://img.youtube.com/vi/m9-Umj3aL1I/hqdefault.jpg',
+    videoId: 'mMlM1O25OyU',
+    thumb: makkahImg,
   },
   {
     id: 'madinah',
     name: 'Madinah Live HD',
     desc: 'Live 24/7 from Masjid an-Nabawi',
-    embedUrl: 'https://www.youtube.com/embed/3L7Gf0BD0gc?autoplay=1',
-    thumb: 'https://img.youtube.com/vi/3L7Gf0BD0gc/hqdefault.jpg',
+    videoId: '3dEBSElM57U',
+    thumb: madinahImg,
   },
   {
-    id: 'sharjah',
-    name: 'Sharjah TV',
-    desc: 'Official Sharjah TV live channel',
-    embedUrl: 'https://www.youtube.com/embed/nNOGatWmxV8?autoplay=1',
-    thumb: 'https://img.youtube.com/vi/nNOGatWmxV8/hqdefault.jpg',
+    id: 'islamchannel',
+    name: 'Islam Channel',
+    desc: 'English-language Islamic TV',
+    videoId: 'nNOGatWmxV8',
+    thumb: islamChannelImg,
   },
-];
+].map((c) => ({
+  ...c,
+  embedUrl: `https://www.youtube.com/embed/${c.videoId}?autoplay=1`,
+  watchUrl: `https://www.youtube.com/watch?v=${c.videoId}`,
+}));
 
 const LIVE_RADIO = [
   { id: 'mix', name: 'Radio Quran (Main)', url: 'https://backup.qurango.net/radio/mix', image: quranImg },
@@ -65,9 +78,20 @@ function TVCard({ channel, playing, onPlay }) {
           </span>
         </button>
       )}
-      <div className="p-4 text-left">
-        <p className="text-white font-bold">{channel.name}</p>
-        <p className="text-white/50 text-xs mt-0.5">{channel.desc}</p>
+      <div className="p-4 text-left flex items-end justify-between gap-3">
+        <div>
+          <p className="text-white font-bold">{channel.name}</p>
+          <p className="text-white/50 text-xs mt-0.5">{channel.desc}</p>
+        </div>
+        {/* Live IDs go stale without warning; always leave a way through. */}
+        <a
+          href={channel.watchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-xs text-white/50 hover:text-white underline decoration-dotted"
+        >
+          Watch on YouTube ↗
+        </a>
       </div>
     </div>
   );
@@ -119,7 +143,7 @@ export default function MediaPage() {
 
         <h3 className="text-white text-xl font-bold mt-10 mb-1">Live TV</h3>
         <p className="text-white/50 text-sm mb-5">
-          Watch free Islamic TV channels including Makkah, Madinah, and Sharjah
+          Watch free Islamic TV channels including Makkah, Madinah, and Islam Channel
         </p>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
           {LIVE_TV.map((ch) => (
