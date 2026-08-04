@@ -91,6 +91,7 @@ export default function PrayerTimes() {
   const [playingAzan, setPlayingAzan] = useState(null);
   const [showCitySearch, setShowCitySearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [azanBlocked, setAzanBlocked] = useState(null);
   const [iqamaOffsets, setIqamaOffsets] = useState(() => loadStored('iqamaOffsets', DEFAULT_IQAMA));
   const [jummah, setJummah] = useState(() => loadStored('jummahTimes', DEFAULT_JUMMAH));
   const audioRef = useRef(null);
@@ -180,11 +181,18 @@ export default function PrayerTimes() {
     });
   }
 
-  function playAzanNow(prayerName) {
+  function playAzanNow(prayerName, { automatic = false } = {}) {
     if (!audioRef.current) return;
     audioRef.current.src = ADHAN_AUDIO_URL;
-    audioRef.current.play().catch(() => {});
     setPlayingAzan(prayerName);
+    setAzanBlocked(false);
+    audioRef.current.play().catch(() => {
+      // Browsers refuse to autoplay audio until the user has interacted with
+      // the page, and this used to fail silently — the azan simply never
+      // sounded. Say so instead of pretending it played.
+      setPlayingAzan(null);
+      if (automatic) setAzanBlocked(prayerName);
+    });
   }
 
   function stopAzan() {
@@ -206,7 +214,7 @@ export default function PrayerTimes() {
       const due = schedule.find((p) => p.athan === nowMinutes);
       if (due && lastTriggeredRef.current !== `${dateKey}-${due.name}`) {
         lastTriggeredRef.current = `${dateKey}-${due.name}`;
-        playAzanNow(due.name);
+        playAzanNow(due.name, { automatic: true });
       }
     }
 
@@ -248,12 +256,25 @@ export default function PrayerTimes() {
                 {viewingToday ? currentPrayer?.name || '—' : selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
               </p>
             </div>
-            {viewingToday && currentPrayer && (
-              <div className="rounded-2xl px-4 py-2 text-center bg-white/10 backdrop-blur">
-                <p className="text-[10px] tracking-widest text-white/60">IQAMA</p>
-                <p className="text-lg font-bold text-white">{minutesToLabel(currentPrayer.iqama)}</p>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {viewingToday && currentPrayer && (
+                <div className="rounded-2xl px-4 py-2 text-center bg-white/10 backdrop-blur">
+                  <p className="text-[10px] tracking-widest text-white/60">IQAMA</p>
+                  <p className="text-lg font-bold text-white">{minutesToLabel(currentPrayer.iqama)}</p>
+                </div>
+              )}
+              {timings && (
+                <button
+                  onClick={() => (playingAzan ? stopAzan() : playAzanNow(currentPrayer?.name || 'Azan'))}
+                  title={playingAzan ? 'Stop azan' : 'Play azan now'}
+                  className="shrink-0 w-14 h-14 rounded-full flex flex-col items-center justify-center font-bold text-[10px] hover:brightness-110 transition"
+                  style={{ background: GOLD, color: '#12233d' }}
+                >
+                  <span className={`text-lg leading-none ${playingAzan ? 'animate-pulse' : ''}`}>🔔</span>
+                  {playingAzan ? 'STOP' : 'ATHAN'}
+                </button>
+              )}
+            </div>
           </div>
 
           {viewingToday && (
@@ -392,10 +413,13 @@ export default function PrayerTimes() {
                   {showIqama && timings && (
                     <button
                       onClick={() => (playingAzan === p ? stopAzan() : playAzanNow(p))}
-                      title={playingAzan === p ? 'Stop azan' : 'Play azan'}
-                      className="text-white/30 hover:text-white text-xs"
+                      title={playingAzan === p ? 'Stop azan' : `Play ${p} azan`}
+                      className={`text-sm transition ${
+                        playingAzan === p ? 'animate-pulse' : 'opacity-40 hover:opacity-100'
+                      }`}
+                      style={{ color: GOLD }}
                     >
-                      {playingAzan === p ? '⏸' : '▶'}
+                      🔔
                     </button>
                   )}
                 </span>
@@ -414,6 +438,21 @@ export default function PrayerTimes() {
           <input type="checkbox" checked={azanEnabled} onChange={(e) => setAzanEnabled(e.target.checked)} className="accent-amber-400" />
           Play azan automatically at prayer time
         </label>
+
+        {azanBlocked && (
+          <div className="mt-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3" style={{ background: NAVY_CARD }}>
+            <p className="text-sm text-amber-300">
+              It&apos;s time for {azanBlocked} — your browser blocked the azan from playing on its own.
+            </p>
+            <button
+              onClick={() => playAzanNow(azanBlocked)}
+              className="shrink-0 px-4 py-2 rounded-full text-sm font-bold"
+              style={{ background: GOLD, color: '#12233d' }}
+            >
+              🔔 Play
+            </button>
+          </div>
+        )}
 
         {/* Jummah */}
         <div className="rounded-2xl px-5 py-4 mt-5 border-l-4" style={{ background: NAVY_CARD, borderColor: GOLD }}>
