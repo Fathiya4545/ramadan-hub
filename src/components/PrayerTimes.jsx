@@ -205,6 +205,7 @@ export default function PrayerTimes() {
   let currentPrayer = null;
   let countdown = null;
   let countdownTarget = null;
+  let pill = null;
 
   if (timings && viewingToday) {
     const { minutes: nowMinutes, seconds: nowSeconds, dateKey } = getNowInTimezone(timezone);
@@ -222,15 +223,21 @@ export default function PrayerTimes() {
     currentPrayer = passed.length ? passed[passed.length - 1] : schedule[schedule.length - 1];
 
     // Count down to this prayer's iqama while it's still ahead, otherwise to
-    // the next athan — which is what the reference layout shows.
+    // the next athan — which is what the reference layout shows. The pill has
+    // to follow the same choice: it used to always show the current prayer's
+    // iqama, so at 5pm it advertised Dhuhr's 1:31pm iqama next to a countdown
+    // running to Asr.
     const nowSec = nowMinutes * 60 + nowSeconds;
     if (passed.length && currentPrayer.iqama > nowMinutes) {
       countdownTarget = 'IQAMA';
       countdown = currentPrayer.iqama * 60 - nowSec;
+      pill = { label: 'IQAMA', minutes: currentPrayer.iqama };
     } else {
       const upcoming = schedule.find((p) => p.athan > nowMinutes);
-      countdownTarget = upcoming ? upcoming.name.toUpperCase() : schedule[0].name.toUpperCase();
-      countdown = (upcoming ? upcoming.athan : schedule[0].athan + 1440) * 60 - nowSec;
+      const next = upcoming || { ...schedule[0], athan: schedule[0].athan + 1440 };
+      countdownTarget = next.name.toUpperCase();
+      countdown = next.athan * 60 - nowSec;
+      pill = { label: `NEXT · ${next.name.toUpperCase()}`, minutes: next.athan };
     }
   }
 
@@ -257,10 +264,10 @@ export default function PrayerTimes() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {viewingToday && currentPrayer && (
+              {viewingToday && pill && (
                 <div className="rounded-2xl px-4 py-2 text-center bg-white/10 backdrop-blur">
-                  <p className="text-[10px] tracking-widest text-white/60">IQAMA</p>
-                  <p className="text-lg font-bold text-white">{minutesToLabel(currentPrayer.iqama)}</p>
+                  <p className="text-[10px] tracking-widest text-white/60">{pill.label}</p>
+                  <p className="text-lg font-bold text-white">{minutesToLabel(pill.minutes)}</p>
                 </div>
               )}
               {timings && (
