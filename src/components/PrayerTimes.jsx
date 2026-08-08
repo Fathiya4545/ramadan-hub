@@ -13,19 +13,21 @@ const ADHAN_AUDIO_URL = 'https://cdn.aladhan.com/audio/adhans/a4.mp3';
 const DEFAULT_IQAMA = { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 };
 const DEFAULT_JUMMAH = { first: '13:00', second: '14:00' };
 
-const GOLD = '#e0bd6b';
-const NAVY_SECTION = '#0a1729';
+// Palette drawn from the backdrop photo itself — sandstone gold, terracotta
+// and warm brown — so the section reads as one picture instead of navy
+// furniture parked on top of a sunset.
+const GOLD = '#e8c583';
 
-// Photo backdrop, dimmed hard so the gold numerals and white text keep their
-// contrast over whatever is in the picture.
+// Only a light warm scrim: enough to anchor text, not enough to grey out the
+// mosque. The cards below carry their own tint, so the photo can stay bright.
 const PRAYER_BACKDROP = {
-  backgroundImage: `linear-gradient(180deg, rgba(10,23,41,0.55) 0%, rgba(10,23,41,0.72) 40%, rgba(10,23,41,0.90) 100%), url(${prayerBg})`,
+  backgroundImage: `linear-gradient(180deg, rgba(46,20,14,0.20) 0%, rgba(46,20,14,0.34) 45%, rgba(38,16,11,0.58) 100%), url(${prayerBg})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center top',
   backgroundAttachment: 'scroll',
 };
-const NAVY_CARD = '#0f2340';
-const NAVY_RAISED = '#1a3560';
+const CARD = 'rgba(56,26,19,0.68)';
+const RAISED = 'rgba(122,60,42,0.52)';
 
 function loadStored(key, fallback) {
   try {
@@ -78,7 +80,7 @@ function isSameDay(a, b) {
 
 function CountdownBox({ value, label }) {
   return (
-    <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: NAVY_RAISED }}>
+    <div className="flex-1 rounded-2xl py-4 text-center backdrop-blur-sm" style={{ background: RAISED }}>
       <p className="text-3xl md:text-4xl font-bold tabular-nums" style={{ color: GOLD }}>
         {String(value).padStart(2, '0')}
       </p>
@@ -261,10 +263,10 @@ export default function PrayerTimes() {
     <section id="prayer-times" className="scroll-mt-20 py-10 px-4 md:px-8" style={PRAYER_BACKDROP}>
       <div className="max-w-2xl mx-auto">
         {/* Current prayer + iqama */}
-        <div className="rounded-3xl overflow-hidden" style={{ background: NAVY_CARD }}>
+        <div className="rounded-3xl overflow-hidden backdrop-blur-md shadow-2xl" style={{ background: CARD }}>
           <div
             className="flex items-center justify-between px-6 py-5"
-            style={{ background: 'linear-gradient(90deg,#1c4270 0%,#17395f 100%)' }}
+            style={{ background: 'linear-gradient(90deg, rgba(150,74,50,0.78) 0%, rgba(104,44,30,0.82) 100%)' }}
           >
             <div>
               <p className="text-xs font-semibold tracking-wide" style={{ color: GOLD }}>
@@ -315,7 +317,7 @@ export default function PrayerTimes() {
           <button
             onClick={() => shiftDay(-1)}
             className="flex items-center gap-2 rounded-full px-5 py-3 text-white font-medium hover:brightness-125 transition"
-            style={{ background: NAVY_RAISED }}
+            style={{ background: RAISED }}
           >
             ← Prev
           </button>
@@ -330,7 +332,7 @@ export default function PrayerTimes() {
           <button
             onClick={() => shiftDay(1)}
             className="flex items-center gap-2 rounded-full px-5 py-3 text-white font-medium hover:brightness-125 transition"
-            style={{ background: NAVY_RAISED }}
+            style={{ background: RAISED }}
           >
             Next →
           </button>
@@ -338,8 +340,8 @@ export default function PrayerTimes() {
 
         {/* Schedule header */}
         <div
-          className="flex items-center justify-between rounded-2xl px-5 py-4 mt-6 border border-white/5"
-          style={{ background: NAVY_CARD }}
+          className="flex items-center justify-between rounded-2xl px-5 py-4 mt-6 border border-white/10 backdrop-blur-md"
+          style={{ background: CARD }}
         >
           <div>
             <h2 className="text-2xl font-bold text-white">Prayer Times</h2>
@@ -361,7 +363,7 @@ export default function PrayerTimes() {
         </div>
 
         {showCitySearch && (
-          <div className="mt-3 rounded-2xl p-4" style={{ background: NAVY_CARD }}>
+          <div className="mt-3 rounded-2xl p-4" style={{ background: CARD }}>
             <form onSubmit={handleCitySearch} className="flex flex-col sm:flex-row gap-2">
               <input
                 value={city}
@@ -411,8 +413,8 @@ export default function PrayerTimes() {
         )}
 
         {/* Times table */}
-        <div className="rounded-2xl overflow-hidden mt-4 border border-white/5">
-          <div className="grid grid-cols-3 px-5 py-3 text-sm text-white/60" style={{ background: NAVY_RAISED }}>
+        <div className="rounded-2xl overflow-hidden mt-4 border border-white/10 backdrop-blur-md">
+          <div className="grid grid-cols-3 px-5 py-3 text-sm text-white/60" style={{ background: RAISED }}>
             <span>Prayer</span>
             <span className="text-right">Athan</span>
             <span className="text-right">Iqama</span>
@@ -424,7 +426,7 @@ export default function PrayerTimes() {
               <div
                 key={p}
                 className="grid grid-cols-3 items-center px-5 py-4 border-t border-white/5"
-                style={{ background: isCurrent ? 'rgba(224,189,107,0.10)' : NAVY_CARD }}
+                style={{ background: isCurrent ? 'rgba(224,189,107,0.10)' : CARD }}
               >
                 <span className="text-white font-medium flex items-center gap-2">
                   {p}
@@ -458,7 +460,7 @@ export default function PrayerTimes() {
         </label>
 
         {azanBlocked && (
-          <div className="mt-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3" style={{ background: NAVY_CARD }}>
+          <div className="mt-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3" style={{ background: CARD }}>
             <p className="text-sm text-amber-300">
               It&apos;s time for {azanBlocked} — your browser blocked the azan from playing on its own.
             </p>
@@ -473,7 +475,7 @@ export default function PrayerTimes() {
         )}
 
         {/* Jummah */}
-        <div className="rounded-2xl px-5 py-4 mt-5 border-l-4" style={{ background: NAVY_CARD, borderColor: GOLD }}>
+        <div className="rounded-2xl px-5 py-4 mt-5 border-l-4 backdrop-blur-md" style={{ background: CARD, borderColor: GOLD }}>
           <p className="text-white font-bold flex items-center gap-2">🕌 Jummah Prayer</p>
           <p className="text-white/70 mt-1">
             1st: {minutesToLabel(toMinutes(jummah.first))} &nbsp;•&nbsp; 2nd: {minutesToLabel(toMinutes(jummah.second))}
@@ -489,7 +491,7 @@ export default function PrayerTimes() {
         </button>
 
         {showSettings && (
-          <div className="rounded-2xl p-5 mt-3" style={{ background: NAVY_CARD }}>
+          <div className="rounded-2xl p-5 mt-3" style={{ background: CARD }}>
             <p className="text-white/50 text-xs mb-3">
               Iqama isn&apos;t provided by any prayer-time API — it&apos;s set by each mosque. These are minutes after the
               athan; adjust them to match yours.
