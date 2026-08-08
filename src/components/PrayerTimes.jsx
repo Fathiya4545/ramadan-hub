@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchPrayerTimesByCoords, fetchPrayerTimesByCity } from '../api';
 // Swap this import to change the prayer section's backdrop.
-import prayerBg from '../assets/sunset.JPG';
+import prayerBg from '../assets/Prayertime.JPG';
 
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const AZAN_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -19,9 +19,9 @@ const NAVY_SECTION = '#0a1729';
 // Photo backdrop, dimmed hard so the gold numerals and white text keep their
 // contrast over whatever is in the picture.
 const PRAYER_BACKDROP = {
-  backgroundImage: `linear-gradient(180deg, rgba(10,23,41,0.82) 0%, rgba(10,23,41,0.90) 45%, rgba(10,23,41,0.97) 100%), url(${prayerBg})`,
+  backgroundImage: `linear-gradient(180deg, rgba(10,23,41,0.55) 0%, rgba(10,23,41,0.72) 40%, rgba(10,23,41,0.90) 100%), url(${prayerBg})`,
   backgroundSize: 'cover',
-  backgroundPosition: 'center',
+  backgroundPosition: 'center top',
   backgroundAttachment: 'scroll',
 };
 const NAVY_CARD = '#0f2340';
