@@ -127,6 +127,16 @@ export default function PrayerTimes() {
 
   // Pick a location once; the fetch effect below reacts to it and the date.
   useEffect(() => {
+    // A city the user picked has to outlive the reload. Without this, every
+    // refresh re-asked for geolocation, got denied, and silently fell back to
+    // Makkah — so the page kept showing Makkah's prayers to someone who had
+    // already told it they were in Seattle.
+    const saved = loadStored('prayerLocation', null);
+    if (saved?.source) {
+      setSource(saved.source);
+      setLocationLabel(saved.label || 'your location');
+      return;
+    }
     if (!navigator.geolocation) {
       setError('Geolocation unavailable, showing Makkah.');
       setLocationLabel('Makkah');
@@ -134,7 +144,7 @@ export default function PrayerTimes() {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => setSource({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (pos) => rememberLocation({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude }, 'your location'),
       () => {
         setError('Location denied, showing Makkah.');
         setLocationLabel('Makkah');
@@ -164,12 +174,21 @@ export default function PrayerTimes() {
     };
   }, [source, selectedDate]);
 
+  function rememberLocation(nextSource, label) {
+    setSource(nextSource);
+    setLocationLabel(label);
+    try {
+      localStorage.setItem('prayerLocation', JSON.stringify({ source: nextSource, label }));
+    } catch {
+      // Private browsing can refuse writes; the location still works for this visit.
+    }
+  }
+
   function handleCitySearch(e) {
     e.preventDefault();
     if (!city || !country) return;
     setError(null);
-    setSource({ type: 'city', city, country });
-    setLocationLabel(city);
+    rememberLocation({ type: 'city', city, country }, city);
   }
 
   function handleUseMyLocation() {
@@ -177,8 +196,7 @@ export default function PrayerTimes() {
     setError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setSource({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude });
-        setLocationLabel('your location');
+        rememberLocation({ type: 'coords', lat: pos.coords.latitude, lon: pos.coords.longitude }, 'your location');
         setCity('');
         setCountry('');
       },
@@ -219,6 +237,7 @@ export default function PrayerTimes() {
   let countdown = null;
   let countdownTarget = null;
   let pill = null;
+  let headline = null;
 
   if (timings && viewingToday) {
     const { minutes: nowMinutes, seconds: nowSeconds, dateKey } = getNowInTimezone(timezone);
@@ -245,12 +264,18 @@ export default function PrayerTimes() {
       countdownTarget = 'IQAMA';
       countdown = currentPrayer.iqama * 60 - nowSec;
       pill = { label: 'IQAMA', minutes: currentPrayer.iqama };
+      headline = { caption: 'Current Prayer', name: currentPrayer.name };
     } else {
       const upcoming = schedule.find((p) => p.athan > nowMinutes);
       const next = upcoming || { ...schedule[0], athan: schedule[0].athan + 1440 };
       countdownTarget = next.name.toUpperCase();
       countdown = next.athan * 60 - nowSec;
-      pill = { label: `NEXT · ${next.name.toUpperCase()}`, minutes: next.athan };
+      pill = { label: 'ATHAN', minutes: next.athan };
+      // Once a prayer's iqama has gone, it is no longer "current" in any sense
+      // the reader cares about — at midday the card was announcing "Current
+      // Prayer: Fajr" to someone waiting for Dhuhr. Name what they're waiting
+      // for instead.
+      headline = { caption: 'Next Prayer', name: next.name };
     }
   }
 
@@ -270,10 +295,10 @@ export default function PrayerTimes() {
           >
             <div>
               <p className="text-xs font-semibold tracking-wide" style={{ color: GOLD }}>
-                {viewingToday ? 'Current Prayer' : 'Schedule for'}
+                {viewingToday ? headline?.caption || 'Current Prayer' : 'Schedule for'}
               </p>
               <p className="text-3xl font-bold text-white mt-0.5">
-                {viewingToday ? currentPrayer?.name || '—' : selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
+                {viewingToday ? headline?.name || '—' : selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -309,7 +334,7 @@ export default function PrayerTimes() {
         </div>
 
         {viewingToday && countdownTarget && (
-          <p className="text-center text-white/40 text-xs mt-2">until {countdownTarget}</p>
+          <p className="text-center text-white/70 text-xs mt-2 drop-shadow">until {countdownTarget}</p>
         )}
 
         {/* Date navigation */}
@@ -420,13 +445,16 @@ export default function PrayerTimes() {
             <span className="text-right">Iqama</span>
           </div>
           {PRAYER_ORDER.map((p) => {
-            const isCurrent = viewingToday && currentPrayer?.name === p;
+            // Highlight whatever the headline names, so the row and the card
+            // agree — highlighting Fajr while the header counts down to Dhuhr
+            // just points at the wrong line.
+            const isCurrent = viewingToday && headline?.name === p;
             const showIqama = AZAN_PRAYERS.includes(p);
             return (
               <div
                 key={p}
                 className="grid grid-cols-3 items-center px-5 py-4 border-t border-white/5"
-                style={{ background: isCurrent ? 'rgba(224,189,107,0.10)' : CARD }}
+                style={{ background: isCurrent ? 'rgba(150,74,50,0.80)' : CARD }}
               >
                 <span className="text-white font-medium flex items-center gap-2">
                   {p}
@@ -454,7 +482,7 @@ export default function PrayerTimes() {
           })}
         </div>
 
-        <label className="flex items-center gap-2 mt-4 text-sm text-white/60">
+        <label className="flex items-center gap-2 mt-4 text-sm text-white/85 rounded-2xl px-4 py-3 backdrop-blur-md" style={{ background: CARD }}>
           <input type="checkbox" checked={azanEnabled} onChange={(e) => setAzanEnabled(e.target.checked)} className="accent-amber-400" />
           Play azan automatically at prayer time
         </label>
@@ -485,7 +513,7 @@ export default function PrayerTimes() {
         {/* Iqama / Jummah are mosque-specific, so let people correct them. */}
         <button
           onClick={() => setShowSettings((s) => !s)}
-          className="text-white/40 hover:text-white/70 text-xs mt-4 underline decoration-dotted"
+          className="text-white/80 hover:text-white text-xs mt-4 underline decoration-dotted rounded-full px-3 py-1.5 backdrop-blur-md inline-block" style={{ background: CARD }}
         >
           {showSettings ? 'Hide' : 'Set iqama & Jummah times for my mosque'}
         </button>
