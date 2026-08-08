@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchPrayerTimesByCoords, fetchPrayerTimesByCity } from '../api';
+// Swap this import to change the prayer section's backdrop.
+import prayerBg from '../assets/sunset.JPG';
 
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const AZAN_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -13,6 +15,15 @@ const DEFAULT_JUMMAH = { first: '13:00', second: '14:00' };
 
 const GOLD = '#e0bd6b';
 const NAVY_SECTION = '#0a1729';
+
+// Photo backdrop, dimmed hard so the gold numerals and white text keep their
+// contrast over whatever is in the picture.
+const PRAYER_BACKDROP = {
+  backgroundImage: `linear-gradient(180deg, rgba(10,23,41,0.82) 0%, rgba(10,23,41,0.90) 45%, rgba(10,23,41,0.97) 100%), url(${prayerBg})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundAttachment: 'scroll',
+};
 const NAVY_CARD = '#0f2340';
 const NAVY_RAISED = '#1a3560';
 
@@ -247,7 +258,7 @@ export default function PrayerTimes() {
   const secs = totalSec % 60;
 
   return (
-    <section id="prayer-times" className="scroll-mt-20 py-10 px-4 md:px-8" style={{ background: NAVY_SECTION }}>
+    <section id="prayer-times" className="scroll-mt-20 py-10 px-4 md:px-8" style={PRAYER_BACKDROP}>
       <div className="max-w-2xl mx-auto">
         {/* Current prayer + iqama */}
         <div className="rounded-3xl overflow-hidden" style={{ background: NAVY_CARD }}>
