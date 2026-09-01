@@ -3,6 +3,7 @@ import { AuthProvider } from './AuthContext';
 import { ThemeProvider } from './ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import InstallPrompt from './components/InstallPrompt';
 import HomePage from './pages/HomePage';
 import QuranPage from './pages/QuranPage';
 import NamesPage from './pages/NamesPage';
@@ -38,6 +39,7 @@ function App() {
             <Route path="/istighfar-counter" element={<IstighfarPage />} />
             </Routes>
             <Footer />
+          <InstallPrompt />
           </div>
         </BrowserRouter>
       </AuthProvider>
