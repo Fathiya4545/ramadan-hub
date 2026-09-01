@@ -4,8 +4,7 @@ service cloud.firestore {
     // Keep this list in sync with ADMIN_EMAILS in src/components/CommunityEvents.jsx
     function isAdmin() {
       return request.auth != null && request.auth.token.email in [
-        'fathiyayoosef@gmail.com',
-        'fathiyayoosef85@gmail.com'
+        'fathiyayoosef@gmail.com'
       ];
     }
 
