@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { addEvent, fetchEvents, removeEvent } from '../userData';
-
-// Must stay in sync with the admin emails in firestore.rules — the list here
-// only decides whether the buttons render; the rules decide what actually saves.
-const ADMIN_EMAILS = ['medinaacademylearning@gmail.com'];
+import { isAdminEmail } from '../admins';
 
 const EMPTY_FORM = { title: '', date: '', time: '', location: '', description: '', videoUrl: '' };
 
@@ -150,7 +147,7 @@ export default function CommunityEvents() {
   const [showForm, setShowForm] = useState(false);
   const fileRef = useRef(null);
 
-  const isAdmin = !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+  const isAdmin = isAdminEmail(user?.email);
 
   useEffect(() => {
     // The Firestore SDK retries connection failures instead of rejecting, so

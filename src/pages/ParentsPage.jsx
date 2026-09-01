@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import SignInModal from '../components/SignInModal';
 import { addStudent, fetchMyStudents, fetchAllStudents, removeStudent } from '../userData';
+import { isAdminEmail } from '../admins';
 
-const ADMIN_EMAILS = ['fathiyayoosef@gmail.com'];
 
 const GRADES = [
   'Pre-Kindergarten', 'Kindergarten',
@@ -53,7 +53,7 @@ export default function ParentsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const isAdmin = !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+  const isAdmin = isAdminEmail(user?.email);
 
   useEffect(() => {
     if (!user) {
