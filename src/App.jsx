@@ -16,6 +16,8 @@ import EventsPage from './pages/EventsPage';
 import MediaPage from './pages/MediaPage';
 import SleepPage from './pages/SleepPage';
 import IstighfarPage from './pages/IstighfarPage';
+import UmrahPage from './pages/UmrahPage';
+import HajjPage from './pages/HajjPage';
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
               <Route path="/media" element={<MediaPage />} />
               <Route path="/sleep" element={<SleepPage />} />
             <Route path="/istighfar-counter" element={<IstighfarPage />} />
+            <Route path="/umrah" element={<UmrahPage />} />
+            <Route path="/hajj" element={<HajjPage />} />
             </Routes>
             <Footer />
           <InstallPrompt />

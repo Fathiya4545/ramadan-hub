@@ -17,6 +17,8 @@ const navItems = [
       { label: 'Quran', icon: '📖', type: 'route', to: '/quran' },
       { label: 'Azkar', icon: '🤲', type: 'route', to: '/azkar' },
       { label: 'Istighfar Counter', icon: '✨', type: 'route', to: '/istighfar-counter' },
+      { label: 'Umrah Guide', icon: '🕋', type: 'route', to: '/umrah' },
+      { label: 'Hajj Guide', icon: '🐫', type: 'route', to: '/hajj' },
       { label: '99 Names', icon: '📿', type: 'route', to: '/names' },
       { label: 'Quran for Sleep', icon: '🌙', type: 'route', to: '/sleep' },
     ],
