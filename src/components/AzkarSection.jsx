@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { azkarCategories } from '../data/azkar';
 import { useArabicSpeech } from '../useArabicSpeech';
 import { useAuth } from '../AuthContext';
@@ -24,6 +25,13 @@ export default function AzkarSection() {
     <section id="azkar" className="scroll-mt-20 bg-emerald-50 dark:bg-gray-900 py-16 px-6 md:px-12 text-center">
       <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Daily Azkar</h2>
       <p className="text-gray-500 dark:text-gray-400 mt-2">Remembrances and supplications for morning, evening, and daily life</p>
+
+      <Link
+        to="/istighfar-counter"
+        className="inline-block mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3.5 rounded-xl text-lg font-bold shadow-md shadow-emerald-600/20"
+      >
+        ✨ Open Istighfar Counter
+      </Link>
 
       <div className="flex flex-wrap gap-2 justify-center mt-6">
         {azkarCategories.map((c) => (
