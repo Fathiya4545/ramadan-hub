@@ -34,7 +34,7 @@ export default function QiblaFinder() {
   const compassSourceRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  function useLocation(lat, lon, note) {
+  function applyLocation(lat, lon, note) {
     setCoords({ lat, lon });
     setBearing(calculateQiblaBearing(lat, lon));
     setError(note || null);
@@ -58,9 +58,9 @@ export default function QiblaFinder() {
 
   useEffect(() => {
     const fallback = savedLocation();
-    const useFallback = () => {
+    const fallBackToSaved = () => {
       if (fallback) {
-        useLocation(
+        applyLocation(
           fallback.lat,
           fallback.lon,
           `Using ${fallback.label || 'your saved location'} from prayer times — allow location for a reading from where you are now.`
@@ -71,12 +71,12 @@ export default function QiblaFinder() {
     };
 
     if (!navigator.geolocation) {
-      useFallback();
+      fallBackToSaved();
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => useLocation(pos.coords.latitude, pos.coords.longitude),
-      useFallback
+      (pos) => applyLocation(pos.coords.latitude, pos.coords.longitude),
+      fallBackToSaved
     );
   }, []);
 
