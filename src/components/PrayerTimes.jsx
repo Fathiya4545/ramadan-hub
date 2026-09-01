@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchPrayerTimesByCoords, fetchPrayerTimesByCity } from '../api';
 // Swap this import to change the prayer section's backdrop.
 import prayerBg from '../assets/Prayertime.JPG';
+import PrayerNotifications from './PrayerNotifications';
 
 const PRAYER_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const AZAN_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -105,6 +106,7 @@ export default function PrayerTimes() {
   const [showCitySearch, setShowCitySearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [azanBlocked, setAzanBlocked] = useState(null);
+  const [resolvedCoords, setResolvedCoords] = useState(null);
   const [iqamaOffsets, setIqamaOffsets] = useState(() => loadStored('iqamaOffsets', DEFAULT_IQAMA));
   const [jummah, setJummah] = useState(() => loadStored('jummahTimes', DEFAULT_JUMMAH));
   const audioRef = useRef(null);
@@ -166,6 +168,7 @@ export default function PrayerTimes() {
         if (cancelled) return;
         setTimings(data.timings);
         setTimezone(data.timezone);
+        if (data.coords) setResolvedCoords(data.coords);
       })
       .catch(() => !cancelled && setError('Could not load prayer times.'))
       .finally(() => !cancelled && setLoading(false));
@@ -486,6 +489,13 @@ export default function PrayerTimes() {
           <input type="checkbox" checked={azanEnabled} onChange={(e) => setAzanEnabled(e.target.checked)} className="accent-amber-400" />
           Play azan automatically at prayer time
         </label>
+
+        <PrayerNotifications
+          coords={source?.type === 'coords' ? { lat: source.lat, lon: source.lon } : resolvedCoords}
+          timezone={timezone}
+          gold={GOLD}
+          card={CARD}
+        />
 
         {azanBlocked && (
           <div className="mt-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3" style={{ background: CARD }}>

@@ -80,7 +80,11 @@ export async function fetchPrayerTimesByCoords(lat, lon, date) {
     `${PRAYER_BASE}/timings${datePath(date)}?latitude=${lat}&longitude=${lon}&method=2`
   );
   const json = await res.json();
-  return { timings: json.data.timings, timezone: json.data.meta.timezone };
+  return {
+    timings: json.data.timings,
+    timezone: json.data.meta.timezone,
+    coords: { lat: json.data.meta.latitude, lon: json.data.meta.longitude },
+  };
 }
 
 export async function fetchPrayerTimesByCity(city, country, date) {
@@ -91,7 +95,13 @@ export async function fetchPrayerTimesByCity(city, country, date) {
   if (json.code !== 200) {
     throw new Error(json.data || 'City not found');
   }
-  return { timings: json.data.timings, timezone: json.data.meta.timezone };
+  // Coordinates come back even for a city lookup, and prayer reminders need
+  // them: the server computes each subscriber's times from lat/lon.
+  return {
+    timings: json.data.timings,
+    timezone: json.data.meta.timezone,
+    coords: { lat: json.data.meta.latitude, lon: json.data.meta.longitude },
+  };
 }
 
 function mapCalendarDay(day) {
