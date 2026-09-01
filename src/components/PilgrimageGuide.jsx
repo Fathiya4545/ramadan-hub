@@ -1,4 +1,53 @@
+import { useState } from 'react';
+
 // Shared layout for the Umrah and Hajj guides — they differ only in content.
+
+// Click-to-load: showing the thumbnail first keeps two YouTube players off the
+// page for a reader who only wanted to read the steps.
+function VideoCard({ video }) {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <div className="rounded-2xl overflow-hidden bg-black border border-gray-200 dark:border-gray-700">
+      {playing ? (
+        <div className="aspect-video">
+          <iframe
+            src={`https://www.youtube.com/embed/${video.id}?autoplay=1`}
+            title={video.title}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <button
+          onClick={() => setPlaying(true)}
+          className="relative w-full aspect-video bg-cover bg-center flex items-center justify-center group"
+          style={{ backgroundImage: `url(https://img.youtube.com/vi/${video.id}/hqdefault.jpg)` }}
+          aria-label={`Play: ${video.title}`}
+        >
+          <span className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition" />
+          <span className="relative w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-2xl">
+            ▶
+          </span>
+        </button>
+      )}
+      <div className="p-4 bg-white dark:bg-gray-800">
+        <p className="font-semibold text-sm text-gray-800 dark:text-gray-100 leading-snug">{video.title}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {video.channel} · {video.length}
+        </p>
+        <a
+          href={`https://www.youtube.com/watch?v=${video.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-emerald-700 dark:text-emerald-400 underline decoration-dotted mt-2 inline-block"
+        >
+          Watch on YouTube ↗
+        </a>
+      </div>
+    </div>
+  );
+}
 
 function Dua({ dua }) {
   return (
@@ -115,6 +164,21 @@ export default function PilgrimageGuide({ guide }) {
             </li>
           ))}
         </ol>
+
+        {guide.videos?.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Watch the steps</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Video guides from other teachers — helpful alongside the steps above, not a replacement for your own
+              scholar.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-5 mt-5">
+              {guide.videos.map((v) => (
+                <VideoCard key={v.id} video={v} />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-2xl p-6 mt-12 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900">
           <h2 className="font-bold text-xl text-rose-900 dark:text-rose-200">What is prohibited during Ihram</h2>

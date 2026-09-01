@@ -143,6 +143,22 @@ export const umrahGuide = {
       note: 'Umrah is now complete, and the restrictions of Ihram end.',
     },
   ],
+  // Each ID was checked for playableInEmbed — a channel can disable embedding
+  // and the player then shows "video unavailable" with no other warning.
+  videos: [
+    {
+      id: 'qZ9n4V9lZkE',
+      title: 'How to Perform Umrah — Step By Step Guide',
+      channel: 'Visualizing Islam',
+      length: '7 min',
+    },
+    {
+      id: 'p63hNPOsoyk',
+      title: 'How to Perform Umrah: Step By Step Guide',
+      channel: 'ZamZam Academy — Dr. Mufti Abdur-Rahman',
+      length: '34 min',
+    },
+  ],
   prohibitions: {
     intro: 'After making the intention for Hajj or Umrah, pilgrims must not:',
     general: [
@@ -276,6 +292,20 @@ export const hajjGuide = {
         'This should be the final major act in Makkah.',
         'Menstruating and postpartum women are excused from the Farewell Tawaf.',
       ],
+    },
+  ],
+  videos: [
+    {
+      id: 'jd9AVwtyp4Y',
+      title: 'How to Perform Hajj — Step by Step Guide',
+      channel: 'Hajj & Umrah Guide / Iblaagh',
+      length: '20 min',
+    },
+    {
+      id: 'KCt2HaHb34E',
+      title: 'Are you Ready for Hajj? A Practical Guide',
+      channel: 'Shaykh Dr. Yasir Qadhi',
+      length: '62 min',
     },
   ],
   prohibitions: {
