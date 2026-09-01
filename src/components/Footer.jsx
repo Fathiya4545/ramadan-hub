@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { scrollToSection } from '../scrollTo';
+import { addSubscriber } from '../userData';
 
 const quickLinks = [
   { label: 'Prayer Times', type: 'anchor', id: 'prayer-times' },
@@ -12,14 +13,28 @@ const quickLinks = [
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [subError, setSubError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  function handleSubscribe(e) {
+  // This used to just flip a flag and show "Thanks for subscribing!" while
+  // throwing the address away — telling people they had signed up when
+  // nothing had been recorded anywhere.
+  async function handleSubscribe(e) {
     e.preventDefault();
-    if (!email) return;
-    setSubscribed(true);
-    setEmail('');
+    if (!email.trim()) return;
+    setSaving(true);
+    setSubError(null);
+    try {
+      await addSubscriber(email);
+      setSubscribed(true);
+      setEmail('');
+    } catch {
+      setSubError('Could not save your address. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleLinkClick(link) {
@@ -51,13 +66,20 @@ export default function Footer() {
             className="px-4 py-3 rounded-full text-gray-800 flex-1 outline-none"
             required
           />
-          <button className="bg-emerald-500 hover:bg-emerald-400 px-6 py-3 rounded-full font-medium">
-            Subscribe
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-700 px-6 py-3 rounded-full font-medium"
+          >
+            {saving ? 'Saving…' : 'Subscribe'}
           </button>
         </form>
         {subscribed && (
-          <p className="text-emerald-200 mt-3 text-sm">Thanks for subscribing!</p>
+          <p className="text-emerald-200 mt-3 text-sm">
+            Thanks — your address is saved. We&apos;ll be in touch with updates.
+          </p>
         )}
+        {subError && <p className="text-amber-300 mt-3 text-sm">{subError}</p>}
       </section>
       <footer className="bg-emerald-950 text-emerald-200 py-10 px-6 md:px-12">
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
