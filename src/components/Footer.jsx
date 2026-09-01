@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { scrollToSection } from '../scrollTo';
-import { addSubscriber } from '../userData';
 
 const quickLinks = [
   { label: 'Prayer Times', type: 'anchor', id: 'prayer-times' },
@@ -27,11 +26,31 @@ export default function Footer() {
     setSaving(true);
     setSubError(null);
     try {
-      await addSubscriber(email);
-      setSubscribed(true);
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // Only a 400 carries a message meant for the reader. Anything else is
+        // a server fault, and its text names internal configuration.
+        throw new Error(
+          res.status === 400 && data.error
+            ? data.error
+            : 'Sorry, we could not sign you up just now. Please try again later.'
+        );
+      }
+      setSubscribed(
+        data.alreadySubscribed
+          ? "You're already subscribed — we'll be in touch with updates."
+          : data.welcomed
+          ? 'Thank you for subscribing. A confirmation email is on its way.'
+          : 'Thank you for subscribing. You are on the list.'
+      );
       setEmail('');
-    } catch {
-      setSubError('Could not save your address. Please try again.');
+    } catch (err) {
+      setSubError(err.message || 'Could not save your address. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -74,11 +93,7 @@ export default function Footer() {
             {saving ? 'Saving…' : 'Subscribe'}
           </button>
         </form>
-        {subscribed && (
-          <p className="text-emerald-200 mt-3 text-sm">
-            Thanks — your address is saved. We&apos;ll be in touch with updates.
-          </p>
-        )}
+        {subscribed && <p className="text-emerald-200 mt-3 text-sm">{subscribed}</p>}
         {subError && <p className="text-amber-300 mt-3 text-sm">{subError}</p>}
       </section>
       <footer className="bg-emerald-950 text-emerald-200 py-10 px-6 md:px-12">

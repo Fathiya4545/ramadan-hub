@@ -97,18 +97,6 @@ export async function resetAzkarCount(uid, azkarId, currentCounts) {
 
 // ---- Newsletter subscribers ----
 
-// The address is the document id, so subscribing twice updates one record
-// instead of creating duplicates the admin would have to de-duplicate later.
-export async function addSubscriber(email) {
-  const clean = email.trim().toLowerCase();
-  await setDoc(
-    doc(db, 'subscribers', clean),
-    { email: clean, createdAt: new Date().toISOString() },
-    { merge: true }
-  );
-  return clean;
-}
-
 export async function fetchSubscribers() {
   const snap = await getDocs(collection(db, 'subscribers'));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));

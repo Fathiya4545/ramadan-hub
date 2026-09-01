@@ -27,6 +27,27 @@ function vercelApiDev() {
 
         // Minimal shim of the Vercel request/response helpers the handlers use.
         req.query = Object.fromEntries(url.searchParams)
+
+        // Vercel parses the JSON body for you; the raw stream here does not,
+        // so req.body was undefined and every POST looked like an empty
+        // request — valid input came back as a validation error locally.
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+          req.body = await new Promise((resolve) => {
+            let raw = ''
+            req.on('data', (chunk) => {
+              raw += chunk
+            })
+            req.on('end', () => {
+              if (!raw) return resolve({})
+              try {
+                resolve(JSON.parse(raw))
+              } catch {
+                resolve(raw)
+              }
+            })
+            req.on('error', () => resolve({}))
+          })
+        }
         res.status = (code) => {
           res.statusCode = code
           return res

@@ -19,14 +19,11 @@ service cloud.firestore {
     }
 
     match /subscribers/{email} {
-      // Anyone may subscribe, but only an admin may read the list — a mailing
-      // list readable by the public is a leak. Shape and size are constrained
-      // so an open create cannot be used to store arbitrary data.
-      allow create, update: if request.resource.data.keys().hasOnly(['email', 'createdAt'])
-        && request.resource.data.email is string
-        && request.resource.data.email.size() > 3
-        && request.resource.data.email.size() < 200;
-      allow read, delete: if isAdmin();
+      // No browser access at all. Subscribing goes through /api/subscribe,
+      // which writes with the service account and so bypasses these rules —
+      // that keeps the mailing list unreadable by the public and stops the
+      // collection being used as open storage.
+      allow read, write: if false;
     }
 
     match /students/{studentId} {
