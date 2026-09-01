@@ -145,6 +145,7 @@ export default function CommunityEvents() {
   const [imageData, setImageData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [notice, setNotice] = useState(null);
   const fileRef = useRef(null);
 
   const isAdmin = isAdminEmail(user?.email);
@@ -181,13 +182,35 @@ export default function CommunityEvents() {
     }
   }
 
+  async function notifySubscribers(event) {
+    if (!user) return;
+    const token = await user.getIdToken();
+    const res = await fetch('/api/notify-subscribers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ event: { ...event, imageData: undefined } }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.sent) {
+      setNotice(`Event posted. ${data.sent} subscriber${data.sent === 1 ? '' : 's'} notified by email.`);
+    } else if (res.ok) {
+      setNotice('Event posted. No subscribers to notify yet.');
+    } else {
+      setNotice(`Event posted, but subscribers were not emailed (${data.error || res.status}).`);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.title.trim()) return;
     setSaving(true);
     setError(null);
     try {
-      await addEvent({ ...form, imageData: imageData || null });
+      const saved = { ...form, imageData: imageData || null };
+      await addEvent(saved);
+      // Tell subscribers, but never let a mail failure look like a failed
+      // post — the event is already saved by this point.
+      notifySubscribers(saved).catch(() => {});
       setForm(EMPTY_FORM);
       setImageData(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -217,6 +240,7 @@ export default function CommunityEvents() {
       <p className="text-gray-500 dark:text-gray-400 mt-2">Celebrations, gatherings, and what's coming up</p>
 
       {error && <p className="text-amber-600 text-sm mt-3">{error}</p>}
+      {notice && <p className="text-emerald-700 dark:text-emerald-400 text-sm mt-3">{notice}</p>}
 
       {isAdmin && (
         <div className="mt-6">

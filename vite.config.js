@@ -36,6 +36,12 @@ function vercelApiDev() {
           res.end(JSON.stringify(body))
           return res
         }
+        res.send = (body) => {
+          if (typeof body === 'object' && body !== null) return res.json(body)
+          if (!res.getHeader('Content-Type')) res.setHeader('Content-Type', 'text/html; charset=utf-8')
+          res.end(String(body))
+          return res
+        }
 
         try {
           await mod.default(req, res)
