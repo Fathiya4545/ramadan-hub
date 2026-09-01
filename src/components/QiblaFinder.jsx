@@ -34,18 +34,49 @@ export default function QiblaFinder() {
   const compassSourceRef = useRef(null);
   const timeoutRef = useRef(null);
 
+  function useLocation(lat, lon, note) {
+    setCoords({ lat, lon });
+    setBearing(calculateQiblaBearing(lat, lon));
+    setError(note || null);
+  }
+
+  // Falls back to the location already chosen for prayer times. Asking again
+  // and giving up on refusal left the compass blank for anyone who had denied
+  // the browser prompt but had perfectly good coordinates saved.
+  function savedLocation() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('prayerLocation') || 'null');
+      const c = saved?.coords;
+      if (typeof c?.lat === 'number' && typeof c?.lon === 'number') {
+        return { ...c, label: saved.label };
+      }
+    } catch {
+      // ignore unreadable storage
+    }
+    return null;
+  }
+
   useEffect(() => {
+    const fallback = savedLocation();
+    const useFallback = () => {
+      if (fallback) {
+        useLocation(
+          fallback.lat,
+          fallback.lon,
+          `Using ${fallback.label || 'your saved location'} from prayer times — allow location for a reading from where you are now.`
+        );
+      } else {
+        setError('Location access denied. Allow location, or set your city in Prayer Times above.');
+      }
+    };
+
     if (!navigator.geolocation) {
-      setError('Geolocation unavailable in this browser.');
+      useFallback();
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setCoords({ lat: latitude, lon: longitude });
-        setBearing(calculateQiblaBearing(latitude, longitude));
-      },
-      () => setError('Location access denied. Allow location to find your Qibla direction.')
+      (pos) => useLocation(pos.coords.latitude, pos.coords.longitude),
+      useFallback
     );
   }, []);
 

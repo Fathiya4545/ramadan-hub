@@ -168,7 +168,26 @@ export default function PrayerTimes() {
         if (cancelled) return;
         setTimings(data.timings);
         setTimezone(data.timezone);
-        if (data.coords) setResolvedCoords(data.coords);
+        if (data.coords) {
+          setResolvedCoords(data.coords);
+          // Store the resolved coordinates too, so other features (the Qibla
+          // compass) can reuse this location instead of asking again and
+          // failing when the browser refuses.
+          try {
+            const saved = JSON.parse(localStorage.getItem('prayerLocation') || 'null');
+            // Only for a location the user actually chose. The Makkah fallback
+            // must not be written here, or a denied prompt would leave the
+            // Qibla compass confidently pointing from Makkah.
+            if (saved?.source) {
+              localStorage.setItem(
+                'prayerLocation',
+                JSON.stringify({ ...saved, coords: data.coords })
+              );
+            }
+          } catch {
+            // Storage unavailable; the location still works for this visit.
+          }
+        }
       })
       .catch(() => !cancelled && setError('Could not load prayer times.'))
       .finally(() => !cancelled && setLoading(false));
