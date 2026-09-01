@@ -1,37 +1,36 @@
+// Keep the admin address in sync with ADMIN_EMAILS in src/admins.js and
+// api/notify-subscribers.js. This file is the copy of what is published in the
+// Firebase console — if you change one, change the other.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Keep this list in sync with ADMIN_EMAILS in src/admins.js
-    function isAdmin() {
-      return request.auth != null && request.auth.token.email in [
-        'medinaacademylearning@gmail.com'
-      ];
-    }
-
     match /users/{userId}/data/{document} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     match /events/{eventId} {
-      // Anyone can view events; only an admin can post or remove them
+      // Anyone can view events; only the admin can post or remove them
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if request.auth != null &&
+        request.auth.token.email == 'medinaacademylearning@gmail.com';
     }
 
     match /subscribers/{email} {
       // No browser access at all. Subscribing goes through /api/subscribe,
-      // which writes with the service account and so bypasses these rules —
-      // that keeps the mailing list unreadable by the public and stops the
-      // collection being used as open storage.
+      // which writes with the service account and bypasses these rules — so
+      // the mailing list cannot be read from the page, and the collection
+      // cannot be used as open storage.
       allow read, write: if false;
     }
 
     match /students/{studentId} {
-      // Parents may read only records linked to their own email; admins read all
+      // Parents may read only records linked to their own email; admin reads all
       allow read: if request.auth != null &&
-        (resource.data.parentEmail == request.auth.token.email || isAdmin());
-      // Only an admin can add or remove students
-      allow create, update, delete: if isAdmin();
+        (resource.data.parentEmail == request.auth.token.email ||
+         request.auth.token.email == 'medinaacademylearning@gmail.com');
+      // Only the admin can add or remove students
+      allow create, update, delete: if request.auth != null &&
+        request.auth.token.email == 'medinaacademylearning@gmail.com';
     }
   }
 }
