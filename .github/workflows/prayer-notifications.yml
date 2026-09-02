@@ -1,0 +1,27 @@
+# Sends prayer-time push notifications.
+#
+# Vercel's Hobby plan only runs cron jobs once a day, which is useless for five
+# prayers, so the schedule lives here instead. GitHub's scheduler is best
+# effort and can run late under load; api/push/send.js looks back a few minutes
+# and de-duplicates, so a late run still delivers and a double run does not.
+name: Prayer notifications
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # lets you trigger a run by hand to test
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger push send
+        run: |
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" \
+            --max-time 60 \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "https://faith.medinaacademylearning.com/api/push/send")
+          echo "HTTP $code"
+          cat /tmp/out.json
+          echo
+          if [ "$code" != "200" ]; then exit 1; fi
