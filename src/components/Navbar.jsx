@@ -31,6 +31,7 @@ const navItems = [
     children: [
       { label: 'Mosques', icon: '🕋', type: 'anchor', id: 'mosques' },
       { label: 'Events', icon: '🤝', type: 'route', to: '/events' },
+      { label: 'Muslim Businesses', icon: '🛍️', type: 'route', to: '/muslim-businesses' },
       { label: 'Parents', icon: '👨‍👩‍👧', type: 'route', to: '/parents' },
     ],
   },

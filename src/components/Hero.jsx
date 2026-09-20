@@ -7,6 +7,7 @@ const quickCards = [
   { icon: '📖', label: 'Quran', to: '/quran' },
   { icon: '🧭', label: 'Qibla', id: 'qibla' },
   { icon: '🤲', label: 'Daily Duas', to: '/azkar' },
+  { icon: '🛍️', label: 'Businesses', to: '/muslim-businesses' },
 ];
 
 const stats = [
@@ -50,7 +51,7 @@ export default function Hero() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-10 max-w-md">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-10 max-w-lg">
           {quickCards.map((card) => (
             <button
               key={card.label}

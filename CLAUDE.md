@@ -84,3 +84,25 @@ notifications, Resend for email. Lint is oxlint.
   `faith.medinaacademylearning.com` is publicly reachable. Share that domain,
   not a deployment URL.
 - Deploys are automatic from `main` on GitHub (`Fathiya4545/ramadan-hub`).
+- **There is an older, separate Vercel project under a second Vercel account**,
+  scope `dhool143s-projects`
+  (`ramadan-hub-git-main-dhool143s-projects.vercel.app`). It still exists and
+  still redirects to a Vercel login. It is NOT the live site and nothing
+  depends on it. Delete it, or ignore it — but do not mistake it for the
+  current deployment.
+
+## The account map (three accounts, one project)
+
+This is the single biggest source of confusion in this project. Written down
+so it does not have to be rediscovered:
+
+| Thing | Account | Notes |
+|---|---|---|
+| GitHub repo owner | **Fathiya4545** | `github.com/Fathiya4545/ramadan-hub`, public |
+| GitHub commit author | **Dhool143** (`fathiyayoosef@gmail.com`) | 51 of 69 commits; can read but not push unless added as a collaborator |
+| Vercel (live) | **fathiyayoosef85@gmail.com** / `fathiya4545` | owns `ramadan-hub` + the custom domain |
+| Vercel (old, dead) | **dhool143** | leftover project, ignore |
+
+Authoring a commit and being allowed to push are different permissions. The
+email in the commit decides whose avatar appears; the signed-in account
+decides whether the push is accepted.

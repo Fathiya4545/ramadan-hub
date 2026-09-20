@@ -18,6 +18,7 @@ import SleepPage from './pages/SleepPage';
 import IstighfarPage from './pages/IstighfarPage';
 import UmrahPage from './pages/UmrahPage';
 import HajjPage from './pages/HajjPage';
+import BusinessesPage from './pages/BusinessesPage';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
             <Route path="/istighfar-counter" element={<IstighfarPage />} />
             <Route path="/umrah" element={<UmrahPage />} />
             <Route path="/hajj" element={<HajjPage />} />
+            <Route path="/muslim-businesses" element={<BusinessesPage />} />
             </Routes>
             <Footer />
           <InstallPrompt />

@@ -34,11 +34,20 @@ export default function Footer() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         // Only a 400 carries a message meant for the reader. Anything else is
-        // a server fault, and its text names internal configuration.
-        throw new Error(
+        // a server fault whose text names internal configuration, so readers
+        // get an apology instead.
+        const message =
           res.status === 400 && data.error
             ? data.error
-            : 'Sorry, we could not sign you up just now. Please try again later.'
+            : 'Sorry, we could not sign you up just now. Please try again later.';
+        // While developing, that apology hides the one thing worth knowing —
+        // locally this is nearly always a missing env var, and "try again
+        // later" sends you looking in the wrong place. Vite strips this branch
+        // from the production build, so nothing leaks to the live site.
+        throw new Error(
+          import.meta.env.DEV && res.status !== 400 && data.error
+            ? `${message} [dev: ${data.error}]`
+            : message
         );
       }
       setSubscribed(

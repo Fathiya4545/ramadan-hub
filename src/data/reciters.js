@@ -23,6 +23,24 @@ const OMAR_HISHAM_AVAILABLE_SURAHS = new Set([
 
 export const reciters = [
   { id: 'ar.alafasy', name: 'Mishary Rashid Alafasy', bitrate: 128, hasFullSurahAudio: true, hasAudio: true, image: alafasyImg },
+  {
+    // Al-Mushaf Al-Mu'allim - the teaching recitation, where Minshawi reads a
+    // verse and children repeat it back. This is the recording children learn
+    // the surahs from, and Surah an-Nas runs 1:01 against roughly 25 seconds
+    // read straight through, which is the repetition.
+    //
+    // Neither source the rest of this file uses carries it: islamic.network has
+    // no children's edition of his, and everyayah has only his Mujawwad and
+    // Murattal. mp3quran.net serves all 114 as whole surahs.
+    id: 'minshawi-muallim',
+    name: "Muhammad Siddiq Al-Minshawi (Al-Mu'allim — with children)",
+    bitrate: null,
+    hasFullSurahAudio: true,
+    hasAudio: true,
+    image: null,
+    customFullSurahUrl: (surahNumber) =>
+      `https://server10.mp3quran.net/minsh/Almusshaf-Al-Mo-lim/${String(surahNumber).padStart(3, '0')}.mp3`,
+  },
   { id: 'ar.abdurrahmaansudais', name: 'Abdurrahmaan As-Sudais', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: sudaisImg },
   { id: 'ar.mahermuaiqly', name: 'Maher Al Muaiqly', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: maherImg },
   { id: 'ar.husary', name: 'Mahmoud Khalil Al-Husary', bitrate: 64, hasFullSurahAudio: false, hasAudio: true, image: husaryImg },
