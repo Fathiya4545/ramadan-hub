@@ -2,8 +2,11 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORIES, businesses } from '../data/businesses';
 
-function mapsUrl(mapSearch) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`;
+function directionsUrl(business) {
+  // A shared Maps link points at the exact pin; a text search for a common
+  // name can land on a different business in another city.
+  if (business.mapUrl) return business.mapUrl;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.mapSearch)}`;
 }
 
 export default function BusinessesPage() {
@@ -18,7 +21,8 @@ export default function BusinessesPage() {
         !search ||
         business.name.toLowerCase().includes(search) ||
         business.city.toLowerCase().includes(search) ||
-        business.category.toLowerCase().includes(search);
+        business.category.toLowerCase().includes(search) ||
+        (business.address || '').toLowerCase().includes(search);
       const matchesCategory =
         selectedCategory === 'All' || business.category === selectedCategory;
       return matchesSearch && matchesCategory;
@@ -92,27 +96,31 @@ export default function BusinessesPage() {
                 {business.name}
               </h2>
               <p className="text-[#666] dark:text-gray-400 text-[15px] mt-1.5">
-                📍 {business.city}, Washington
+                📍 {business.address || `${business.city}, Washington`}
               </p>
               <p className="text-[#444] dark:text-gray-300 text-[15px] leading-[22px] mt-3">
                 {business.description}
               </p>
 
               <div className="flex gap-2.5 mt-4">
-                <a
-                  href={business.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 bg-[#176B4D] hover:bg-[#12583F] text-white font-bold text-center py-3 rounded-[10px]"
-                >
-                  Visit Website
-                </a>
-                {business.mapSearch !== '' && (
+                {business.website && (
                   <a
-                    href={mapsUrl(business.mapSearch)}
+                    href={business.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 border border-[#176B4D] dark:border-emerald-400 text-[#176B4D] dark:text-emerald-300 font-bold text-center py-3 rounded-[10px] hover:bg-[#E5F2EB] dark:hover:bg-gray-700"
+                    className="flex-1 bg-[#176B4D] hover:bg-[#12583F] text-white font-bold text-center py-3 rounded-[10px]"
+                  >
+                    Visit Website
+                  </a>
+                )}
+                {business.mapSearch !== '' && (
+                  <a
+                    href={directionsUrl(business)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex-1 border border-[#176B4D] dark:border-emerald-400 text-[#176B4D] dark:text-emerald-300 font-bold text-center py-3 rounded-[10px] hover:bg-[#E5F2EB] dark:hover:bg-gray-700 ${
+                      business.website ? '' : 'bg-[#E5F2EB] dark:bg-gray-700'
+                    }`}
                   >
                     Directions
                   </a>
